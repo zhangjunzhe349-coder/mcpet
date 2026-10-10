@@ -15,6 +15,11 @@ const { spawn } = require('child_process');
 const WebSocket = require('ws');
 
 const ROOT = path.resolve(__dirname, '..');
+/* 设置 TARGET_URL 则直接校验线上地址（不起本地服务），用于验证 Pages 部署结果 */
+const TARGET = process.env.TARGET_URL || '';
+const SUFFIX = TARGET ? '-live' : '';
+/* Edge 不读 HTTP_PROXY 环境变量，线上模式必须显式指定代理 */
+const BROWSER_PROXY = TARGET ? (process.env.BROWSER_PROXY || process.env.HTTPS_PROXY || process.env.https_proxy || '') : '';
 const PORT = 8123;
 const CDP_PORT = 9333;
 const EDGE = [
@@ -122,16 +127,24 @@ async function connect() {
 (async () => {
   if (!EDGE) { console.error('找不到 Edge/Chrome 可执行文件'); process.exit(1); }
 
-  const srv = await serve();
-  console.log(`[静态服务] http://127.0.0.1:${PORT}/ 已就绪`);
+  let srv = null;
+  if (!TARGET) {
+    srv = await serve();
+    console.log(`[静态服务] http://127.0.0.1:${PORT}/ 已就绪`);
+  } else {
+    console.log(`[线上模式] 目标地址：${TARGET}`);
+  }
+  const OPEN_URL = TARGET || `http://127.0.0.1:${PORT}/index.html`;
 
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'mcpet-cdp-'));
-  const browser = spawn(EDGE, [
+  const args = [
     '--headless=new', `--remote-debugging-port=${CDP_PORT}`, `--user-data-dir=${profile}`,
     '--no-first-run', '--no-default-browser-check', '--disable-gpu', '--no-sandbox',
     '--hide-scrollbars', '--window-size=1200,1000', '--force-device-scale-factor=1',
-    `http://127.0.0.1:${PORT}/index.html`,
-  ], { stdio: 'ignore' });
+  ];
+  if (BROWSER_PROXY) args.push(`--proxy-server=${BROWSER_PROXY}`);
+  args.push(OPEN_URL);
+  const browser = spawn(EDGE, args, { stdio: 'ignore' });
 
   let cdp;
   try {
@@ -316,14 +329,14 @@ async function connect() {
     });
     const outDir = path.join(ROOT, 'assets');
     fs.mkdirSync(outDir, { recursive: true });
-    fs.writeFileSync(path.join(outDir, 'screenshot-mobile.png'), Buffer.from(shotMobile.result.data, 'base64'));
-    check('手机全页截图已保存', true, 'assets/screenshot-mobile.png');
+    fs.writeFileSync(path.join(outDir, `screenshot-mobile${SUFFIX}.png`), Buffer.from(shotMobile.result.data, 'base64'));
+    check('手机全页截图已保存', true, `assets/screenshot-mobile${SUFFIX}.png`);
 
     await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
     await sleep(400);
     const shotDesk = await cdp.send('Page.captureScreenshot', { format: 'png' });
-    fs.writeFileSync(path.join(outDir, 'screenshot-desktop.png'), Buffer.from(shotDesk.result.data, 'base64'));
-    check('桌面截图已保存', true, 'assets/screenshot-desktop.png');
+    fs.writeFileSync(path.join(outDir, `screenshot-desktop${SUFFIX}.png`), Buffer.from(shotDesk.result.data, 'base64'));
+    check('桌面截图已保存', true, `assets/screenshot-desktop${SUFFIX}.png`);
 
     await cdp.send('Emulation.clearDeviceMetricsOverride');
 
@@ -336,7 +349,7 @@ async function connect() {
     problems.push('脚本致命错误: ' + (e && e.message));
   } finally {
     try { browser.kill(); } catch {}
-    try { srv.close(); } catch {}
+    try { if (srv) srv.close(); } catch {}
   }
 
   const passed = results.filter(r => r.pass).length;
