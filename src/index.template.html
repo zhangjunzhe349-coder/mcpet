@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="麦麦宠物 McPet —— 点麦当劳就是喂宠物。用麦当劳官方 MCP 的营养数据，把每一餐变成一次养成。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23FFC72C'/%3E%3Crect x='11' y='5' width='10' height='22' rx='5' fill='%233A2A16'/%3E%3Crect x='6' y='10' width='4' height='12' rx='2' fill='%23D99400'/%3E%3Crect x='22' y='10' width='4' height='12' rx='2' fill='%23D99400'/%3E%3C/svg%3E">
+<title>麦麦宠物 McPet · 点麦当劳就是喂宠物</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:system-ui,-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:#F5EAD8;
+  color:#3A2A16;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.app{max-width:480px;margin:0 auto;min-height:100vh;background:#FFF8EC;position:relative;padding-bottom:76px}
+@media(min-width:520px){.app{box-shadow:0 0 0 1px #E8D9C0,0 8px 40px rgba(58,42,22,.10);min-height:100vh}}
+
+/* ---------- 顶栏 ---------- */
+.top{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:14px 16px 10px;background:#FFF8EC;position:sticky;top:0;z-index:30;
+}
+.brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:16px;letter-spacing:.2px}
+.brand .mark{
+  width:24px;height:24px;border-radius:7px;background:#FFC72C;flex:0 0 auto;
+  display:grid;place-items:center;font-size:13px;color:#3A2A16;font-weight:700;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.12);
+}
+.brand small{font-weight:400;font-size:11px;color:#9C8B76;letter-spacing:.4px}
+.score-pill{
+  display:flex;align-items:center;gap:7px;background:#FFFFFF;border:1px solid #EADCC4;
+  border-radius:999px;padding:5px 11px 5px 7px;font-size:12px;color:#8A7B6B;
+}
+.score-pill b{font-size:15px;color:#3A2A16;font-variant-numeric:tabular-nums}
+.dot{width:8px;height:8px;border-radius:50%;background:#C9BCA8;flex:0 0 auto}
+.dot.s{background:#2E9E63}.dot.a{background:#7BB662}.dot.b{background:#E8B23A}
+.dot.c{background:#E08A3C}.dot.d{background:#DA291C}
+
+/* ---------- 宠物舞台 ---------- */
+.stage{
+  position:relative;margin:2px 16px 14px;border-radius:22px;overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 118%, #FFE9A8 0%, #FFF3D2 42%, #FFFBF0 100%);
+  border:1px solid #F0E2C8;
+  padding:16px 16px 14px;
+}
+.stage::before{
+  content:"";position:absolute;inset:0;
+  background-image:radial-gradient(#EFD9A8 1px,transparent 1px);
+  background-size:14px 14px;opacity:.55;pointer-events:none;
+}
+.petwrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px}
+#pet{image-rendering:pixelated;display:block;filter:drop-shadow(0 6px 0 rgba(58,42,22,.07))}
+.petname{font-size:13px;font-weight:600;letter-spacing:.3px}
+.petname span{font-weight:400;color:#9C8B76;font-size:11px;margin-left:6px}
+.bubble{
+  position:relative;background:#FFFFFF;border:1px solid #EADCC4;border-radius:14px;
+  padding:9px 13px;font-size:13px;max-width:300px;text-align:center;
+  box-shadow:0 2px 0 rgba(58,42,22,.04);min-height:38px;display:grid;place-items:center;
+  transition:transform .18s ease;
+}
+.bubble.pop{transform:scale(1.04)}
+.bubble::after{
+  content:"";position:absolute;left:50%;bottom:100%;transform:translateX(-50%) rotate(45deg);
+  width:9px;height:9px;background:#FFFFFF;border-left:1px solid #EADCC4;border-top:1px solid #EADCC4;
+  margin-bottom:-5px;
+}
+.eatlayer{position:absolute;left:50%;top:120px;transform:translateX(-50%);pointer-events:none;font-size:30px;opacity:0}
+.eatlayer.go{animation:eatfly .62s cubic-bezier(.4,0,.6,1) forwards}
+@keyframes eatfly{
+  0%{opacity:1;transform:translate(-50%,20px) scale(.6) rotate(-10deg)}
+  60%{opacity:1;transform:translate(-50%,-46px) scale(1.15) rotate(8deg)}
+  100%{opacity:0;transform:translate(-50%,-72px) scale(.8) rotate(-6deg)}
+}
+.chips-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:2px}
+.tag{font-size:10.5px;padding:2px 8px;border-radius:999px;background:#FFFFFF;border:1px solid #EADCC4;color:#8A7B6B}
+.tag.warn{background:#FDECEA;border-color:#F6C9C4;color:#B32216}
+.tag.good{background:#EAF7EF;border-color:#C4E8D3;color:#1F7A4C}
+
+/* ---------- Tab ---------- */
+.tabs{
+  position:fixed;left:0;right:0;bottom:0;z-index:40;
+  display:flex;max-width:480px;margin:0 auto;background:rgba(255,248,236,.96);
+  backdrop-filter:blur(10px);border-top:1px solid #EADCC4;padding:7px 8px calc(7px + env(safe-area-inset-bottom));
+}
+.tab{
+  flex:1;border:0;background:none;padding:7px 2px;border-radius:12px;cursor:pointer;
+  font-family:inherit;font-size:11px;color:#9C8B76;display:flex;flex-direction:column;align-items:center;gap:2px;
+  transition:background .15s,color .15s;
+}
+.tab i{font-style:normal;font-size:17px;line-height:1}
+.tab.on{color:#3A2A16;background:#FFECB8;font-weight:600}
+
+main{padding:0 16px}
+.panel{display:none;animation:fade .22s ease}
+.panel.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.card{background:#FFFFFF;border:1px solid #EADCC4;border-radius:16px;padding:14px;margin-bottom:12px}
+.card h3{margin:0 0 10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.card h3 small{font-weight:400;color:#9C8B76;font-size:11px}
+.hint{font-size:11.5px;color:#9C8B76;margin:8px 0 0}
+
+/* ---------- 喂食面板 ---------- */
+.search{
+  width:100%;border:1px solid #EADCC4;background:#FFFDF8;border-radius:12px;
+  padding:10px 13px;font-size:13px;font-family:inherit;color:#3A2A16;outline:none;
+}
+.search:focus{border-color:#FFC72C;background:#FFFFFF}
+.cats{display:flex;gap:6px;overflow-x:auto;padding:10px 0 6px;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.cat{
+  flex:0 0 auto;border:1px solid #EADCC4;background:#FFFFFF;border-radius:999px;
+  padding:5px 12px;font-size:12px;color:#6B5B47;cursor:pointer;font-family:inherit;white-space:nowrap;
+  transition:.15s;
+}
+.cat.on{background:#3A2A16;color:#FFF3D2;border-color:#3A2A16}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:4px}
+.item{
+  text-align:left;border:1px solid #EADCC4;background:#FFFDF8;border-radius:14px;
+  padding:10px 11px;cursor:pointer;font-family:inherit;color:inherit;
+  transition:transform .12s ease,border-color .15s,box-shadow .15s;position:relative;overflow:hidden;
+}
+.item:active{transform:scale(.975)}
+.item:hover{border-color:#FFC72C;box-shadow:0 3px 0 rgba(255,199,44,.22)}
+.item .nm{font-size:12.5px;font-weight:600;display:block;line-height:1.35;min-height:34px}
+.item .kc{font-size:11px;color:#9C8B76;margin-top:4px;display:flex;justify-content:space-between;align-items:center}
+.item .bar{height:3px;border-radius:2px;background:#F0E6D4;margin-top:6px;overflow:hidden}
+.item .bar i{display:block;height:100%;border-radius:2px}
+.empty{text-align:center;padding:26px 10px;color:#9C8B76;font-size:12.5px}
+.morebtn{
+  width:100%;margin-top:10px;border:1px dashed #DCCBB0;background:transparent;border-radius:12px;
+  padding:9px;font-size:12px;color:#8A7B6B;cursor:pointer;font-family:inherit;
+}
+
+/* ---------- 营养面板 ---------- */
+.kv{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kv div{background:#FFFDF8;border:1px solid #F0E6D4;border-radius:12px;padding:9px 10px}
+.kv span{display:block;font-size:10.5px;color:#9C8B76}
+.kv b{font-size:16px;font-variant-numeric:tabular-nums;letter-spacing:-.3px}
+.kv b i{font-style:normal;font-size:10.5px;font-weight:400;color:#9C8B76;margin-left:2px}
+.bars{margin-top:4px}
+.brow{margin-bottom:9px}
+.brow .lb{display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:4px;color:#6B5B47}
+.brow .lb b{font-variant-numeric:tabular-nums;color:#3A2A16}
+.btrack{height:8px;border-radius:5px;background:#F4EBDC;overflow:hidden;position:relative}
+.btrack i{display:block;height:100%;border-radius:5px;transition:width .5s cubic-bezier(.3,.9,.3,1)}
+.btrack .refline{position:absolute;top:-2px;bottom:-2px;width:1.5px;background:#3A2A16;opacity:.28}
+.radarwrap{display:grid;place-items:center;padding:4px 0 0}
+
+/* ---------- 健康分 ---------- */
+.bigscore{display:flex;align-items:center;gap:16px}
+.ring{position:relative;width:104px;height:104px;flex:0 0 auto}
+.ring svg{transform:rotate(-90deg)}
+.ring .num{
+  position:absolute;inset:0;display:grid;place-items:center;flex-direction:column;
+  font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-1px;
+}
+.ring .num em{font-style:normal;font-size:11px;font-weight:400;color:#9C8B76;display:block;text-align:center;margin-top:-4px}
+.grade{font-size:12px;color:#8A7B6B}
+.grade b{display:block;font-size:17px;color:#3A2A16;margin-bottom:2px}
+.parts{margin-top:12px}
+.prow{display:flex;align-items:center;gap:9px;margin-bottom:7px;font-size:11.5px}
+.prow .pname{width:44px;color:#6B5B47;flex:0 0 auto}
+.prow .ptrack{flex:1;height:7px;border-radius:4px;background:#F4EBDC;overflow:hidden}
+.prow .ptrack i{display:block;height:100%;border-radius:4px}
+.prow .pval{width:52px;text-align:right;color:#9C8B76;font-variant-numeric:tabular-nums;flex:0 0 auto}
+.advice{background:#FFF9E6;border:1px solid #F5E3AC;border-radius:12px;padding:11px 12px;font-size:12.5px;margin-top:11px}
+.advice b{color:#8A6A16}
+
+/* ---------- 更多 / MCP ---------- */
+.mcp{display:grid;gap:9px}
+.mcpcard{border:1px solid #EADCC4;background:#FFFDF8;border-radius:14px;padding:12px}
+.mcpcard .hd{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.mcpcard .hd i{font-style:normal;font-size:16px}
+.mcpcard p{margin:6px 0 9px;font-size:11.5px;color:#8A7B6B}
+.mcpcard code{
+  display:block;background:#F7F1E6;border:1px solid #EBDFC9;border-radius:9px;padding:8px 10px;
+  font-size:11px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#5B4A35;
+  word-break:break-all;line-height:1.5;
+}
+.acts{display:flex;gap:7px;margin-top:9px}
+.btn{
+  border:0;border-radius:10px;padding:8px 13px;font-size:12px;font-family:inherit;cursor:pointer;
+  background:#FFC72C;color:#3A2A16;font-weight:600;transition:.15s;
+}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:#FFFFFF;border:1px solid #EADCC4;color:#6B5B47;font-weight:400}
+.btn.wide{width:100%}
+textarea.imp{
+  width:100%;min-height:78px;border:1px solid #EADCC4;background:#FFFDF8;border-radius:11px;
+  padding:9px 11px;font-size:11px;font-family:ui-monospace,Menlo,Consolas,monospace;
+  color:#3A2A16;outline:none;resize:vertical;line-height:1.5;
+}
+textarea.imp:focus{border-color:#FFC72C}
+.report{margin-top:11px;border-top:1px dashed #EADCC4;padding-top:11px}
+.report .rsum{display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px}
+.report .rlist{display:grid;gap:6px;max-height:210px;overflow:auto}
+.report .ritem{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;background:#FFFDF8;border:1px solid #F0E6D4;border-radius:9px;padding:7px 10px}
+.report .ritem span:last-child{color:#9C8B76;font-variant-numeric:tabular-nums;flex:0 0 auto}
+
+footer{padding:14px 16px 22px;text-align:center;font-size:10.5px;color:#B3A48F;line-height:1.7}
+footer a{color:#8A7B6B}
+.toast{
+  position:fixed;left:50%;bottom:96px;transform:translate(-50%,10px);z-index:60;
+  background:#3A2A16;color:#FFF3D2;font-size:12px;padding:9px 16px;border-radius:999px;
+  opacity:0;pointer-events:none;transition:.22s;
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* 移动端：输入框字号必须 >=16px，否则 iOS 聚焦时会自动放大整页 */
+@media(max-width:520px){
+  #panel-feed .search, #panel-more textarea.imp{font-size:16px}
+  #panel-feed .search{padding:11px 13px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="brand">
+      <span class="mark">M</span>
+      <div>麦麦宠物<small style="display:block">McPet</small></div>
+    </div>
+    <div class="score-pill" id="topScore">
+      <span class="dot" id="topDot"></span>
+      健康分 <b id="topNum">--</b>
+    </div>
+  </header>
+
+  <section class="stage">
+    <div class="petwrap">
+      <canvas id="pet" width="200" height="200" aria-label="像素宠物 麦麦"></canvas>
+      <div class="petname">麦麦<span id="petState">待喂食</span></div>
+      <div class="bubble" id="bubble">今天想喂我吃点什么呀？点一份餐，我就知道你吃了啥 👀</div>
+      <div class="chips-row" id="petTags"></div>
+    </div>
+    <div class="eatlayer" id="eatLayer">🍔</div>
+  </section>
+
+  <main>
+    <!-- 喂食 -->
+    <section class="panel on" id="panel-feed">
+      <div class="card">
+        <h3>🍟 喂麦麦 <small>选一份餐品</small></h3>
+        <input class="search" id="search" placeholder="搜索餐品，比如「巨无霸」「板烧」「薯条」">
+        <div class="cats" id="cats"></div>
+        <div class="grid" id="grid"></div>
+        <button class="morebtn" id="moreBtn">显示更多（还有 <b id="rest">0</b> 项）</button>
+        <p class="hint">数据来自麦当劳中国官方 MCP 的 <code>list-nutrition-foods</code>，共 <b id="total">0</b> 条餐品的真实营养值。</p>
+      </div>
+    </section>
+
+    <!-- 营养 -->
+    <section class="panel" id="panel-nutrition">
+      <div class="card">
+        <h3>📊 营养档案 <small id="nName">尚未选择</small></h3>
+        <div class="kv" id="kv"></div>
+      </div>
+      <div class="card">
+        <h3>🕸 营养雷达 <small>占单餐参考值比例</small></h3>
+        <div class="radarwrap" id="radar"></div>
+        <p class="hint">六个维度按「单餐参考值」归一化：热量 600 kcal / 蛋白 25 g / 脂肪 25 g / 碳水 70 g / 钠 1000 mg / 钙 300 mg。超出参考线的部分会顶出网格。</p>
+      </div>
+      <div class="card">
+        <h3>📏 逐项对照</h3>
+        <div class="bars" id="bars"></div>
+        <p class="hint">黑色竖线是单餐参考值。绿色 = 在舒适区，橙色 = 接近上限，红色 = 已超标。</p>
+      </div>
+    </section>
+
+    <!-- 健康分 -->
+    <section class="panel" id="panel-score">
+      <div class="card">
+        <h3>💯 麦麦健康分</h3>
+        <div class="bigscore">
+          <div class="ring">
+            <svg width="104" height="104" viewBox="0 0 104 104">
+              <circle cx="52" cy="52" r="45" fill="none" stroke="#F4EBDC" stroke-width="11"></circle>
+              <circle id="ringArc" cx="52" cy="52" r="45" fill="none" stroke="#2E9E63" stroke-width="11"
+                      stroke-linecap="round" stroke-dasharray="282.7" stroke-dashoffset="282.7"
+                      style="transition:stroke-dashoffset .6s cubic-bezier(.3,.9,.3,1),stroke .3s"></circle>
+            </svg>
+            <div class="num"><div><span id="bigNum">--</span><em id="bigUnit">等待喂食</em></div></div>
+          </div>
+          <div class="grade" id="grade">
+            <b>还没吃过东西</b>
+            先去「喂麦麦」选一份餐品，我就能算出这一餐对麦麦的影响。
+          </div>
+        </div>
+        <div class="parts" id="parts"></div>
+        <div class="advice" id="advice">💡 健康分由蛋白质（30）、热量（25）、钠（20）、脂肪（15）、碳水（10）五项加权得到，满分 100。</div>
+      </div>
+    </section>
+
+    <!-- 更多 -->
+    <section class="panel" id="panel-more">
+      <div class="card">
+        <h3>🔌 真实 MCP 能力 <small>需要 Token，在 WorkBuddy 里执行</small></h3>
+        <div class="mcp" id="mcpCards"></div>
+        <p class="hint">
+          营养数据已内置在本页，所以<strong>不配置 Token 也能玩</strong>。
+          下面这几项（领券 / 活动 / 门店 / 订单）必须走真实 MCP 调用 —— 点「复制指令」，
+          粘到 WorkBuddy 对话框里执行即可，结果可以直接贴回本页。
+        </p>
+      </div>
+      <div class="card">
+        <h3>🧾 饮食报告 <small>把 order-list 的结果贴进来</small></h3>
+        <p class="hint" style="margin-top:0">
+          在 WorkBuddy 里执行：<code style="background:#F7F1E6;padding:2px 5px;border-radius:5px">用麦当劳 MCP 调 order-list，把返回的原始 JSON 给我</code>，
+          然后把结果粘贴到下面。
+        </p>
+        <textarea class="imp" id="orderIn" placeholder='粘贴 order-list 返回内容（含 "data" 字段的 JSON 即可）'></textarea>
+        <div class="acts">
+          <button class="btn" id="analyzeBtn">生成我的饮食报告</button>
+          <button class="btn ghost" id="clearBtn">清空</button>
+        </div>
+        <div class="report" id="report" style="display:none"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    麦麦宠物 McPet · 麦当劳程序员节创意开发大赛参赛作品<br>
+    由参赛者独立开发，非麦当劳官方产品 · 营养数据来自麦当劳中国官方 MCP<br>
+    页面输出仅供参考，不构成医疗或营养建议
+  </footer>
+</div>
+
+<nav class="tabs">
+  <button class="tab on" data-p="feed"><i>🍟</i>喂麦麦</button>
+  <button class="tab" data-p="nutrition"><i>📊</i>营养档案</button>
+  <button class="tab" data-p="score"><i>💯</i>健康分</button>
+  <button class="tab" data-p="more"><i>🔌</i>MCP 能力</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   数据源：麦当劳中国官方 MCP · list-nutrition-foods
+   本页内联快照，故无需 Token 即可完整体验核心功能。
+   ========================================================= */
+const NUTRITION = __NUTRITION_JSON__;
+
+/* 单餐参考值（用于雷达图与逐项对照的正常化基线） */
+const REF = { energyKcal:600, protein:25, fat:25, carbohydrate:70, sodium:1000, calcium:300 };
+
+const FIELDS = [
+  { k:'energyKcal',   label:'热量', unit:'kcal', good:'low'  },
+  { k:'protein',      label:'蛋白', unit:'g',    good:'high' },
+  { k:'fat',          label:'脂肪', unit:'g',    good:'low'  },
+  { k:'carbohydrate', label:'碳水', unit:'g',    good:'low'  },
+  { k:'sodium',       label:'钠',   unit:'mg',   good:'low'  },
+  { k:'calcium',      label:'钙',   unit:'mg',   good:'high' }
+];
+
+/* =========================================================
+   麦麦健康分（0-100）
+   蛋白 30 + 热量 25 + 钠 20 + 脂肪 15 + 碳水 10
+   每项按「单餐标准」做分段线性评分，越优越高分。
+   ========================================================= */
+function seg(v, pts){                       // pts: [[阈值, 分数], ...] 递减
+  for(let i=0;i<pts.length-1;i++){
+    const [x0,s0]=pts[i], [x1,s1]=pts[i+1];
+    if(v<=x0) return s0;
+    if(v<=x1) return s0 + (s1-s0)*(v-x0)/(x1-x0);
+  }
+  return pts[pts.length-1][1];
+}
+function pctl(v, best, worst){              // best 值拿满分，worst 值拿 0
+  if(v<=best) return 1;
+  if(v>=worst) return 0;
+  return (worst-v)/(worst-best);
+}
+
+function healthScore(n){
+  const parts = [
+    { name:'蛋白', max:30, score: 30*Math.min(n.protein/25, 1),
+      why:'蛋白质是肌肉与饱腹感的来源，25 g 记满分。' },
+    { name:'热量', max:25, score: seg(n.energyKcal, [[250,25],[500,16],[800,4],[1100,0]]),
+      why:'单餐 250 kcal 以内最轻，500 以上开始给身体加负担。' },
+    { name:'钠',   max:20, score: seg(n.sodium,     [[400,20],[800,12],[1400,4],[2000,0]]),
+      why:'钠主要看有没有超标，《中国居民膳食指南》建议每日不超过 2000 mg。' },
+    { name:'脂肪', max:15, score: seg(n.fat,        [[10,15],[22,8],[40,2],[60,0]]),
+      why:'脂肪提供风味，但单餐过高会拉低整体质量。' },
+    { name:'碳水', max:10, score: seg(n.carbohydrate,[[35,10],[60,6],[85,2],[120,0]]),
+      why:'碳水是主要能量来源，过多则容易犯困。' }
+  ];
+  parts.forEach(p => p.score = Math.max(0, Math.min(p.max, p.score)));
+  const total = Math.round(parts.reduce((s,p)=>s+p.score, 0));
+  return { total, parts };
+}
+
+function gradeOf(s){
+  if(s>=85) return { g:'S', txt:'麦麦健康之选', color:'#2E9E63' };
+  if(s>=70) return { g:'A', txt:'不错，继续保持', color:'#7BB662' };
+  if(s>=55) return { g:'B', txt:'还行，但有改进空间', color:'#E8B23A' };
+  if(s>=40) return { g:'C', txt:'悠着点，麦麦有点撑', color:'#E08A3C' };
+  return       { g:'D', txt:'麦麦生气了！', color:'#DA291C' };
+}
+
+/* =========================================================
+   宠物状态判定：先看危害项，再看综合分
+   ========================================================= */
+function petStateOf(n, score){
+  if(n.energyKcal>700 || (n.energyKcal>520 && n.fat>25))
+    return { s:'fat',     label:'撑圆了',  line:'呃…肚子圆了一圈，让我躺会儿…🥲' };
+  if(n.sodium>900)
+    return { s:'thirsty', label:'好渴',    line:'好咸好咸！我要喝水！！💧' };
+  if(n.carbohydrate>62)
+    return { s:'sleepy',  label:'想躺平',  line:'碳水好高…眼皮有点沉…想躺平 😴' };
+  if(score>=70 && n.protein>=15)
+    return { s:'happy',   label:'满足',    line:'哇，这顿好轻盈，我浑身在发光 ✨' };
+  if(score>=55)
+    return { s:'normal',  label:'还行',    line:'还不错，能吃饱也不腻。' };
+  return   { s:'normal',  label:'一般般', line:'嗯…能吃，但我更想要高蛋白的 🥺' };
+}
+
+/* =========================================================
+   像素宠物渲染（20×20 网格）
+   ========================================================= */
+const PAL = {
+  'B':'#FFC72C', 'd':'#D99400', 'K':'#3A2A16', 'W':'#FFFFFF',
+  'P':'#FF9EB5', 'R':'#E8554E', 'C':'#5CC6F0', 'Y':'#FFF3B0', 'G':'#2E9E63',
+  'L':'#FFE58A'
+};
+
+/* 左上高光（做立体感）与小脚（做生物感） */
+const HILITE = [[4,8],[4,7],[5,6],[6,5],[7,5],[8,5]];
+const FEET   = [[6,18],[7,18],[12,18],[13,18]];
+
+const BODY = [
+"....................",
+"....................",
+"......dddddddd......",
+"....ddBBBBBBBBdd....",
+"...dBBBBBBBBBBBBd...",
+"..dBBBBBBBBBBBBBBd..",
+"..dBBBBBBBBBBBBBBd..",
+".dBBBBBBBBBBBBBBBBd.",
+".dBBBBBBBBBBBBBBBBd.",
+".dBBBBBBBBBBBBBBBBd.",
+".dBBBBBBBBBBBBBBBBd.",
+".dBBBBBBBBBBBBBBBBd.",
+".dBBBBBBBBBBBBBBBBd.",
+"..dBBBBBBBBBBBBBBd..",
+"..dBBBBBBBBBBBBBBd..",
+"...dBBBBBBBBBBBBd...",
+"....ddBBBBBBBBdd....",
+"......dddddddd......",
+"....................",
+"...................."
+];
+
+/* 左眼原点 (6,7)，右眼原点 (12,7)：镜像 dx -> 1-dx */
+const EYE = {
+  open  : [[0,0],[1,0],[0,1],[1,1]],
+  closed: [[0,0],[1,0]],
+  happy : [[0,1],[1,0]],
+  wide  : [[0,0],[1,0],[0,1],[1,1],[0,2],[1,2]]
+};
+const MOUTH = {
+  smile : [[0,1],[1,2],[2,2],[3,1]],
+  open  : [[0,0],[1,0],[2,0],[3,0],[1,1],[2,1]],
+  flat  : [[0,0],[1,0],[2,0],[3,0]],
+  wavy  : [[0,1],[1,0],[2,0],[3,1]]
+};
+
+const CELL = 10;          // 每格 10px -> 200px 画布
+const pet = document.getElementById('pet');
+const ctx = pet.getContext('2d');
+
+function px(x, y, color){
+  ctx.fillStyle = color;
+  ctx.fillRect(x*CELL, y*CELL, CELL, CELL);
+}
+function stamp(map, ox, oy, color, mirror){
+  map.forEach(([dx,dy]) => px(ox + (mirror ? 1-dx : dx), oy + dy, color));
+}
+
+function drawPet(state, t){
+  const breathe = state === 'sleepy' ? 0 : Math.round(Math.sin(t/620));
+  ctx.clearRect(0,0,pet.width,pet.height);
+
+  /* 光晕（happy 时） */
+  if(state === 'happy'){
+    ctx.fillStyle = 'rgba(255,214,64,.22)';
+    ctx.beginPath(); ctx.arc(100,100,96,0,Math.PI*2); ctx.fill();
+  }
+
+  ctx.save();
+  ctx.translate(0, breathe);
+
+  /* 身体 */
+  BODY.forEach((row, y) => row.split('').forEach((c, x) => { if(PAL[c]) px(x,y,PAL[c]); }));
+  HILITE.forEach(([x,y]) => px(x,y,PAL.L));
+  FEET.forEach(([x,y]) => px(x,y,PAL.d));
+
+  /* 撑圆了：腰上加一圈 */
+  if(state === 'fat'){
+    const fat = [
+      "..................",
+      "..dddddddddddddd..",
+      "..dBBBBBBBBBBBBd.."
+    ];
+    fat.forEach((row, y) => row.split('').forEach((c, x) => { if(PAL[c]) px(x, 9+y, PAL[c]); }));
+  }
+
+  const eyeKind = { happy:'happy', sleepy:'closed', fat:'closed' }[state] || 'open';
+  const mouthKind = { happy:'open', sleepy:'flat', fat:'wavy', thirsty:'open' }[state] || 'smile';
+
+  /* 眼睛 */
+  ['L','R'].forEach(side => {
+    const ox = side === 'L' ? 6 : 13;
+    stamp(EYE[eyeKind], ox, 7, PAL.K, side === 'R');
+    if(eyeKind === 'open' || eyeKind === 'wide'){
+      px(ox + (side === 'L' ? 0 : 1), 7, PAL.W);     // 高光
+    }
+  });
+
+  /* 嘴 */
+  stamp(MOUTH[mouthKind], 8, 10, PAL.K, false);
+  if(state === 'thirsty'){                            // 吐舌头
+    px(9,12,PAL.R); px(10,12,PAL.R); px(10,13,PAL.R);
+  }
+
+  /* 腮红 */
+  px(3,9,PAL.P); px(4,9,PAL.P); px(3,10,PAL.P); px(16,9,PAL.P); px(15,9,PAL.P); px(16,10,PAL.P);
+
+  /* 装饰 */
+  if(state === 'happy'){
+    [[15,3],[17,4],[16,6],[4,4],[3,6]].forEach(([x,y]) => px(x,y,PAL.Y));
+    px(2,2,PAL.Y);
+  }
+  if(state === 'thirsty' || state === 'fat'){
+    [[17,7],[18,8],[16,9]].forEach(([x,y]) => px(x,y,PAL.C));
+  }
+  if(state === 'sleepy'){
+    /* Z z z */
+    const z = [[15,3],[16,3],[15,4],[17,3],[17,4],[17,5]];
+    z.forEach(([x,y]) => px(x,y,PAL.G));
+    [[16,6],[17,6],[16,7]].forEach(([x,y]) => px(x,y,PAL.G));
+  }
+  if(state === 'fat'){
+    [[2,13],[3,14],[1,14]].forEach(([x,y]) => px(x,y,PAL.C));
+  }
+  ctx.restore();
+}
+
+/* =========================================================
+   UI 渲染
+   ========================================================= */
+const $ = id => document.getElementById(id);
+const CATS = [
+  { n:'全部',   t:'' },
+  { n:'汉堡',   t:'堡|巨无霸|麦香|麦辣|板烧|安格斯|吉士|牛堡' },
+  { n:'小食',   t:'薯条|鸡块|鸡翅|鸡排|派|油条|薯饼|鸡球|V翅|里脊|琵琶腿|香肠|卷' },
+  { n:'饮品',   t:'可乐|雪碧|咖啡|奶|豆浆|红茶|柠檬|美式|玛奇朵|卡布奇诺|绿茶|朱古力|果汁|怡泉|纯悦' },
+  { n:'甜品',   t:'冰淇淋|新地|麦旋风|奶冻|爆珠|拉明顿|阿芙佳朵|雪冰' },
+  { n:'早餐',   t:'麦满分|粥|营养卷|炒双蛋|蛋沙拉' }
+];
+let state = { cat:'全部', kw:'', show:12, current:null, pet:'normal' };
+
+function kcalColor(k){
+  if(k<=300) return '#2E9E63';
+  if(k<=500) return '#E8B23A';
+  if(k<=700) return '#E08A3C';
+  return '#DA291C';
+}
+
+function filtered(){
+  let list = NUTRITION.items;
+  if(state.cat !== '全部'){
+    const re = new RegExp(CATS.find(c=>c.n===state.cat).t);
+    list = list.filter(i => re.test(i.productName));
+  }
+  if(state.kw){
+    const k = state.kw.toLowerCase();
+    list = list.filter(i => i.productName.toLowerCase().includes(k));
+  }
+  /* 热量高的排前面更有话题度，但先按名称稳定排序，保证可预期 */
+  return list;
+}
+
+function renderCats(){
+  $('cats').innerHTML = CATS.map(c =>
+    `<button class="cat ${state.cat===c.n?'on':''}" data-c="${c.n}">${c.n}</button>`
+  ).join('');
+  $('cats').querySelectorAll('.cat').forEach(b => b.onclick = () => {
+    state.cat = b.dataset.c; state.show = 12; renderCats(); renderGrid();
+  });
+}
+
+function renderGrid(){
+  const list = filtered();
+  const shown = list.slice(0, state.show);
+  $('grid').innerHTML = shown.length ? shown.map(i => {
+    const pct = Math.min(i.energyKcal/800, 1) * 100;
+    return `<button class="item" data-n="${i.productName.replace(/"/g,'&quot;')}">
+      <span class="nm">${i.productName}</span>
+      <span class="kc"><span>${i.energyKcal} kcal</span><span>蛋白 ${i.protein}g</span></span>
+      <span class="bar"><i style="width:${pct}%;background:${kcalColor(i.energyKcal)}"></i></span>
+    </button>`;
+  }).join('') : `<div class="empty">没找到「${state.kw}」相关的餐品，换个词试试？</div>`;
+
+  $('grid').querySelectorAll('.item').forEach(b => {
+    b.onclick = () => feed(b.dataset.n);
+  });
+  const rest = Math.max(0, list.length - state.show);
+  $('rest').textContent = rest;
+  $('moreBtn').style.display = rest ? 'block' : 'none';
+}
+
+function renderKV(n){
+  $('kv').innerHTML = FIELDS.map(f =>
+    `<div><span>${f.label}</span><b>${n[f.k]}<i>${f.unit}</i></b></div>`
+  ).join('');
+  $('nName').textContent = n.productName + (n.nutritionDescription ? ' · ' + n.nutritionDescription : '');
+}
+
+function renderBars(n){
+  const rows = FIELDS.map(f => {
+    const ratio = n[f.k] / REF[f.k];
+    const w = Math.min(ratio, 1.6) / 1.6 * 100;
+    let color = '#2E9E63';
+    if(f.good === 'low'){
+      if(ratio > 1) color = '#DA291C';
+      else if(ratio > 0.72) color = '#E08A3C';
+      else if(ratio > 0.45) color = '#E8B23A';
+    } else {
+      color = ratio >= 0.6 ? '#2E9E63' : ratio >= 0.3 ? '#E8B23A' : '#E08A3C';
+    }
+    const refPct = (1 / 1.6) * 100;
+    return `<div class="brow">
+      <div class="lb"><span>${f.label}</span><b>${n[f.k]} ${f.unit} · 参考 ${REF[f.k]}${f.unit}</b></div>
+      <div class="btrack"><i style="width:${w}%;background:${color}"></i><div class="refline" style="left:${refPct}%"></div></div>
+    </div>`;
+  }).join('');
+  $('bars').innerHTML = rows;
+}
+
+function renderRadar(n){
+  const S = 260, C = S/2, R = 96, AX = FIELDS.length;
+  let g = '';
+  [0.25,0.5,0.75,1].forEach(lv => {
+    const p = FIELDS.map((_,i) => {
+      const a = -Math.PI/2 + i*2*Math.PI/AX;
+      return `${C + Math.cos(a)*R*lv},${C + Math.sin(a)*R*lv}`;
+    }).join(' ');
+    g += `<polygon points="${p}" fill="none" stroke="#EFE4D2" stroke-width="1"/>`;
+  });
+  /* 参考线（1.0）加深 */
+  const refPoly = FIELDS.map((_,i)=>{
+    const a = -Math.PI/2 + i*2*Math.PI/AX;
+    return `${C + Math.cos(a)*R},${C + Math.sin(a)*R}`;
+  }).join(' ');
+  g += `<polygon points="${refPoly}" fill="none" stroke="#D8C7A8" stroke-width="1.5"/>`;
+  FIELDS.forEach((_,i) => {
+    const a = -Math.PI/2 + i*2*Math.PI/AX;
+    g += `<line x1="${C}" y1="${C}" x2="${C+Math.cos(a)*R*1.12}" y2="${C+Math.sin(a)*R*1.12}" stroke="#EFE4D2" stroke-width="1"/>`;
+  });
+  const dataPts = FIELDS.map((f,i) => {
+    const ratio = n[f.k] / REF[f.k];
+    const a = -Math.PI/2 + i*2*Math.PI/AX;
+    const rr = R * Math.min(ratio, 1.35);
+    return [C + Math.cos(a)*rr, C + Math.sin(a)*rr];
+  });
+  g += `<polygon points="${dataPts.map(p=>p.join(',')).join(' ')}"
+          fill="rgba(255,199,44,.42)" stroke="#D99400" stroke-width="2" stroke-linejoin="round"/>`;
+  dataPts.forEach(p => { g += `<circle cx="${p[0]}" cy="${p[1]}" r="3.4" fill="#FFF3D2" stroke="#D99400" stroke-width="2"/>`; });
+  FIELDS.forEach((f,i) => {
+    const a = -Math.PI/2 + i*2*Math.PI/AX;
+    const x = C + Math.cos(a)*R*1.26, y = C + Math.sin(a)*R*1.26;
+    g += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central"
+            font-size="11" fill="#8A7B6B" font-family="system-ui,sans-serif">${f.label}</text>`;
+  });
+  $('radar').innerHTML = `<svg width="${S}" height="${S}" viewBox="0 0 ${S} ${S}">${g}</svg>`;
+}
+
+function renderScore(n){
+  const { total, parts } = healthScore(n);
+  const gr = gradeOf(total);
+  const CIRC = 282.7;
+  $('ringArc').setAttribute('stroke', gr.color);
+  $('ringArc').setAttribute('stroke-dashoffset', CIRC * (1 - total/100));
+  $('bigNum').textContent = total;
+  $('bigUnit').textContent = gr.g + ' 级';
+  $('grade').innerHTML = `<b style="color:${gr.color}">${gr.txt}</b>${gr.g} 级 · 综合蛋白质、热量、钠、脂肪、碳水五项`;
+  $('parts').innerHTML = parts.map(p => {
+    const pct = p.score / p.max * 100;
+    const color = pct>=75 ? '#2E9E63' : pct>=50 ? '#E8B23A' : pct>=28 ? '#E08A3C' : '#DA291C';
+    return `<div class="prow">
+      <span class="pname">${p.name}</span>
+      <span class="ptrack"><i style="width:${pct}%;background:${color}"></i></span>
+      <span class="pval">${p.score.toFixed(1)} / ${p.max}</span>
+    </div>`;
+  }).join('');
+
+  /* 建议：挑得分率最低且影响最大的项 */
+  const worst = parts.slice().sort((a,b)=> (a.score/a.max) - (b.score/b.max))[0];
+  const TIP = {
+    '蛋白':'蛋白质偏少。加一份麦麦脆汁鸡（琵琶腿 21 g）或换板烧鸡腿堡（23 g）会更均衡。',
+    '热量':'这餐热量偏高。下一餐挑清淡些的主食就能拉回来，不用太焦虑。',
+    '钠':'钠含量偏高（每日建议上限 2000 mg）。这顿之后多喝水，别再配咸味小食了。',
+    '脂肪':'脂肪偏多。想解馋又不想超额，可以把薯条换掉，主食留在汉堡上。',
+    '碳水':'碳水偏多。容易犯困的话，下次试试用无糖饮品替换含糖饮料。'
+  };
+  $('advice').innerHTML = `💡 <b>麦麦建议：</b>${TIP[worst.name]}`;
+}
+
+function renderTags(n, total){
+  const tags = [];
+  tags.push(`<span class="tag">${n.energyKcal} kcal</span>`);
+  if(n.protein >= 20) tags.push(`<span class="tag good">高蛋白 ${n.protein}g</span>`);
+  if(n.sodium > 900) tags.push(`<span class="tag warn">钠偏高 ${n.sodium}mg</span>`);
+  if(n.fat > 25) tags.push(`<span class="tag warn">脂肪偏高 ${n.fat}g</span>`);
+  if(n.carbohydrate > 62) tags.push(`<span class="tag warn">碳水偏高 ${n.carbohydrate}g</span>`);
+  if(n.calcium >= 200) tags.push(`<span class="tag good">补钙 ${n.calcium}mg</span>`);
+  if(n.energyKcal === 0) tags.push(`<span class="tag good">0 热量</span>`);
+  $('petTags').innerHTML = tags.join('');
+}
+
+let eatTimer = null;
+function feed(name){
+  const n = NUTRITION.items.find(i => i.productName === name);
+  if(!n) return;
+  const { total } = healthScore(n);
+  const st = petStateOf(n, total);
+  state.current = n; state.pet = st.s;
+
+  /* 吃东西动画 */
+  $('eatLayer').textContent = pickEmoji(n.productName);
+  $('eatLayer').classList.remove('go');
+  void $('eatLayer').offsetWidth;
+  $('eatLayer').classList.add('go');
+
+  $('bubble').classList.add('pop');
+  setTimeout(()=> $('bubble').classList.remove('pop'), 200);
+
+  /* 先"嚼"，再出结论 */
+  $('bubble').textContent = '嚼嚼嚼… ( ˘ω˘ )';
+  $('petState').textContent = '正在吃';
+  clearTimeout(eatTimer);
+  eatTimer = setTimeout(() => {
+    $('bubble').textContent = st.line;
+    $('petState').textContent = st.label;
+    renderTags(n, total);
+    renderKV(n); renderBars(n); renderRadar(n); renderScore(n);
+    $('topNum').textContent = total;
+    $('topDot').className = 'dot ' + ({S:'s',A:'a',B:'b',C:'c',D:'d'}[gradeOf(total).g]);
+    toast(`麦麦吃了「${n.productName}」 · 健康分 ${total}`);
+  }, 620);
+}
+
+function pickEmoji(name){
+  if(/薯条|薯饼/.test(name)) return '🍟';
+  if(/可乐|雪碧|怡泉|纯悦/.test(name)) return '🥤';
+  if(/咖啡|美式|玛奇朵|卡布奇诺|奶铁|浓缩/.test(name)) return '☕';
+  if(/冰淇淋|新地|麦旋风|雪顶|雪冰|阿芙佳朵/.test(name)) return '🍦';
+  if(/粥|油条|蛋|麦满分/.test(name)) return '🍳';
+  if(/鸡块|鸡翅|鸡排|鸡球|V翅|里脊|琵琶腿|鸡扒/.test(name)) return '🍗';
+  if(/苹果|玉米|沙拉|蔬/.test(name)) return '🥗';
+  return '🍔';
+}
+
+/* ---------- MCP 功能卡 ---------- */
+const MCP_TASKS = [
+  { icon:'🎟', t:'一键领券', d:'把麦麦省里当前可领的券一次性收进卡包。', q:'用麦当劳 MCP 帮我领一下当前能领的优惠券（auto-bind-coupons）' },
+  { icon:'📅', t:'活动日历', d:'看看这个月有什么活动、什么时候开始。', q:'用麦当劳 MCP 查一下本月麦当劳的营销活动日历（campaign-calendar）' },
+  { icon:'📍', t:'附近门店', d:'找出能喂麦麦的最近门店。', q:'用麦当劳 MCP 查一下我附近可以到店自取的门店（query-nearby-stores，city=宁波市，keyword=海曙区）' },
+  { icon:'🧾', t:'历史订单', d:'看看最近都喂了麦麦什么，结果可贴到下方生成报告。', q:'用麦当劳 MCP 调 order-list，把返回的原始 JSON 给我' }
+];
+function renderMcp(){
+  $('mcpCards').innerHTML = MCP_TASKS.map((m,i) => `
+    <div class="mcpcard">
+      <div class="hd"><i>${m.icon}</i>${m.t}</div>
+      <p>${m.d}</p>
+      <code id="q${i}">${m.q}</code>
+      <div class="acts">
+        <button class="btn" data-copy="${i}">复制指令</button>
+        <button class="btn ghost" data-send="${i}">怎么用？</button>
+      </div>
+    </div>`).join('');
+
+  $('mcpCards').querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
+    const q = MCP_TASKS[+b.dataset.copy].q;
+    try { await navigator.clipboard.writeText(q); toast('指令已复制，去 WorkBuddy 粘贴执行'); }
+    catch { toast('复制失败，请手动选中上方指令复制'); }
+  });
+  $('mcpCards').querySelectorAll('[data-send]').forEach(b => b.onclick = () => {
+    toast('在 WorkBuddy 对话框粘贴这条指令即可，结果可贴回「饮食报告」');
+  });
+}
+
+/* ---------- 饮食报告 ---------- */
+function analyzeOrder(){
+  const raw = $('orderIn').value.trim();
+  if(!raw){ toast('先把 order-list 的结果贴进来'); return; }
+  let obj;
+  try{
+    const i = raw.indexOf('{');
+    obj = JSON.parse(raw.slice(i));
+  }catch(e){
+    toast('没解析出来，确认粘贴的是完整 JSON'); return;
+  }
+  const orders = obj.data?.orders || obj.data?.list || obj.data || [];
+  const arr = Array.isArray(orders) ? orders : [];
+  if(!arr.length){ toast('这份数据里没找到订单列表'); return; }
+
+  const hits = [];
+  arr.forEach(o => {
+    const names = [];
+    const walk = v => {
+      if(!v) return;
+      if(typeof v === 'string'){ names.push(v); return; }
+      if(Array.isArray(v)){ v.forEach(walk); return; }
+      if(typeof v === 'object'){
+        Object.entries(v).forEach(([k,val]) => {
+          if(/productName|mealName|name|productCode|mealCode|code/i.test(k) && typeof val === 'string') names.push(val);
+          else if(typeof val === 'object') walk(val);
+        });
+      }
+    };
+    walk(o.products || o.items || o.orderItems || o);
+    names.forEach(nm => {
+      const hit = NUTRITION.items.find(i => i.productName === nm);
+      if(hit && !hits.some(h => h.n.productName === hit.productName && h.ts === o)) hits.push({ n:hit, ts:o });
+    });
+  });
+
+  if(!hits.length){
+    toast('订单里没有能对上营养库的餐品名'); return;
+  }
+  const uniq = [];
+  hits.forEach(h => { if(!uniq.some(u => u.productName === h.n.productName)) uniq.push(h.n); });
+
+  const avg = Math.round(uniq.reduce((s,i) => s + healthScore(i).total, 0) / uniq.length);
+  const totalKcal = uniq.reduce((s,i) => s + i.energyKcal, 0);
+  const topSodium = uniq.slice().sort((a,b) => b.sodium - a.sodium)[0];
+
+  $('report').style.display = 'block';
+  $('report').innerHTML = `
+    <div class="rsum"><span>识别到 <b>${uniq.length}</b> 种餐品</span><span>平均健康分 <b>${avg}</b></span></div>
+    <div class="rsum"><span>合计热量 <b>${totalKcal}</b> kcal</span><span>最高钠：${topSodium.productName} ${topSodium.sodium}mg</span></div>
+    <div class="rlist">${uniq.map(i => `
+      <div class="ritem"><span>${i.productName}</span><span>${i.energyKcal} kcal · ${healthScore(i).total} 分</span></div>
+    `).join('')}</div>
+    <p class="hint">把这张报告截图发出去，就是一份「我的麦麦饮食画像」📸</p>`;
+  toast('报告生成好了');
+}
+
+/* ---------- 通用 ---------- */
+let toastTimer = null;
+function toast(msg){
+  const el = $('toast');
+  el.textContent = msg; el.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> el.classList.remove('on'), 2100);
+}
+
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(x => x.classList.remove('on'));
+  t.classList.add('on');
+  $('panel-' + t.dataset.p).classList.add('on');
+  if(t.dataset.p === 'nutrition' && state.current) renderRadar(state.current);
+  window.scrollTo({ top:0, behavior:'smooth' });
+});
+
+/* ---------- 启动 ---------- */
+(function init(){
+  $('total').textContent = NUTRITION.count;
+  renderCats(); renderGrid(); renderMcp();
+
+  $('search').oninput = e => { state.kw = e.target.value.trim(); state.show = 12; renderGrid(); };
+  $('moreBtn').onclick = () => { state.show += 24; renderGrid(); };
+  $('analyzeBtn').onclick = analyzeOrder;
+  $('clearBtn').onclick = () => { $('orderIn').value = ''; $('report').style.display = 'none'; };
+
+  let t = 0;
+  (function loop(){ t += 16; drawPet(state.pet, t); requestAnimationFrame(loop); })();
+})();
+</script>
+</body>
+</html>

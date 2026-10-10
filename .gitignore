@@ -1,0 +1,17 @@
+# 本机环境
+.workbuddy/
+.env
+.env.local
+
+# 官方规则存档（本地参考用，不入仓库）
+docs/official/
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+
+# 内部需求交接文档（不对外公开）
+对接文档.md
