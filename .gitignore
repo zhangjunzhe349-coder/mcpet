@@ -24,3 +24,9 @@ data/_ranking_*.json
 data/_competitors/
 rank_tmp.md
 docs/对标分析-*.md
+
+# 榜单/同行调研中间数据（抓取产物，本地研究用）
+_rank*.md
+_ranked*.json
+_issues*.json
+_repo_*.json

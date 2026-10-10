@@ -297,6 +297,86 @@ footer a{color:#8A7B6B}
   #panel-feed .search, #panel-pet .nameinput, #panel-more textarea.imp{font-size:16px}
   #panel-feed .search{padding:11px 13px}
 }
+
+/* =========================================================
+   平板（768~1023）：仍是单列，但放宽容器、餐品网格升 3 列
+   ========================================================= */
+@media(min-width:768px) and (max-width:1023px){
+  .app{max-width:640px}
+  .tabs{max-width:640px}
+  .grid{grid-template-columns:repeat(3,1fr)}
+}
+
+/* =========================================================
+   桌面版（≥1024px）
+   手机端布局完全不受影响 —— 所有规则都锁在这个断点里。
+   改的不是「皮肤」而是「信息架构」：
+   把手机端的纵向单列流，改成符合桌面认知的双栏工作台 ——
+   左边宠物常驻（滚动右侧数据时它一直在），右边数据铺开成两列。
+   ========================================================= */
+@media(min-width:1024px){
+  /* body 变纵向 flex：只为把 .app 之外的底部导航重新排序到顶部 */
+  body{display:flex;flex-direction:column;align-items:center}
+
+  /* ---------- 底部 Tab → 顶部横向导航 ---------- */
+  .tabs{
+    order:-1;
+    position:sticky;top:0;left:auto;right:auto;bottom:auto;
+    width:100%;max-width:1240px;margin:0 auto;
+    justify-content:center;gap:6px;
+    padding:9px 24px;
+    border-top:0;border-bottom:1px solid #EADCC4;
+    background:rgba(255,248,236,.9);
+    backdrop-filter:blur(12px);
+  }
+  .tab{flex:0 0 auto;flex-direction:row;gap:7px;padding:9px 18px;font-size:13px;border-radius:11px}
+  .tab i{font-size:15px}
+  .tab:hover{background:#FFF2D0;color:#3A2A16}
+  /* 桌面才有键盘，给导航挂上快捷键角标 */
+  .tab::after{
+    font-size:9.5px;line-height:1.6;color:#B3A48F;
+    border:1px solid #E8D9C0;border-radius:5px;padding:0 4px;margin-left:1px;
+  }
+  .tab:nth-child(1)::after{content:"1"}
+  .tab:nth-child(2)::after{content:"2"}
+  .tab:nth-child(3)::after{content:"3"}
+  .tab:nth-child(4)::after{content:"4"}
+  .tab:nth-child(5)::after{content:"5"}
+  .tab.on::after{color:#8A7B6B;border-color:#E8CF9A;background:#FFF9E4}
+
+  /* ---------- 双栏工作台 ---------- */
+  .app{
+    width:100%;max-width:1240px;margin:0 auto;padding:0 24px 34px;
+    display:grid;
+    grid-template-columns:400px minmax(0,1fr);
+    column-gap:24px;align-items:start;
+  }
+  .top{grid-column:1/-1;position:static;padding:18px 0 14px}
+  /* 左栏=宠物常驻房：撑满一屏可用高度，宠物垂直居中，滚动右栏时它一直在 */
+  .stage{
+    grid-column:1;margin:0;position:sticky;top:76px;
+    min-height:calc(100vh - 190px);
+    display:flex;flex-direction:column;justify-content:center;
+  }
+  main{grid-column:2;padding:0}
+  footer{grid-column:1/-1;padding:22px 0 8px;margin-top:30px}
+
+  /* ---------- 面板内的卡片自动铺两列 ---------- */
+  .panel.on{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+  .panel.on .card{margin:0}
+  .panel.on .disclose{grid-column:1/-1;margin:0}
+  #panel-feed .card{grid-column:1/-1}   /* 篮子与挑餐品都是宽内容，占满整行 */
+
+  /* ---------- 桌面端密度与字号 ---------- */
+  .grid{grid-template-columns:repeat(3,1fr)}
+  .card{padding:16px}
+  .card h3{font-size:14px}
+  .hint{font-size:12px}
+  .todaylist,.report .rlist{max-height:none}
+  .radarwrap svg{max-width:100%;height:auto}
+  .bigscore{gap:14px}
+  .grade{min-width:0}
+}
 </style>
 </head>
 <body>
@@ -1456,6 +1536,17 @@ document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
   if(p === 'today') renderToday();
   if(p === 'pet') renderGrowth();
   window.scrollTo({ top:0, behavior:'smooth' });
+});
+
+/* 桌面专属：数字键 1~5 直接切面板
+   （手机没有实体键盘，这段永远不触发，不影响移动端体验） */
+addEventListener('keydown', e => {
+  if(e.metaKey || e.ctrlKey || e.altKey) return;
+  const tag = (document.activeElement && document.activeElement.tagName) || '';
+  if(tag === 'INPUT' || tag === 'TEXTAREA') return;   // 打字时不抢键
+  if(!/^[1-5]$/.test(e.key)) return;
+  const tab = document.querySelectorAll('.tab')[Number(e.key) - 1];
+  if(tab) tab.click();
 });
 
 /* ---------- 启动 ---------- */

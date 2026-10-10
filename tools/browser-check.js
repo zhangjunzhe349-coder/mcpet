@@ -446,7 +446,114 @@ async function waitReady(cdp, timeoutLoops = 60) {
     check('喂食主按钮 ≥44px', m.feedBtnH >= 44, 'h=' + m.feedBtnH);
     check('搜索框字号 ≥16px（防 iOS 缩放）', m.searchFont >= 16, m.searchFont + 'px');
 
-    console.log('\n【14】截图');
+    /* =========================================================
+       【14】桌面端适配（≥1024px 双栏工作台）
+       手机端布局与这里无关，各自独立断言，互不牵连。
+       ========================================================= */
+    console.log('\n【14】桌面端适配（1280×900 / 1440×900）');
+    for (const [vw, vh] of [[1280, 900], [1440, 900]]) {
+      await cdp.send('Emulation.setDeviceMetricsOverride', { width: vw, height: vh, deviceScaleFactor: 1, mobile: false });
+      await sleep(400);
+      await cdp.ev(`window.scrollTo(0,0)`);
+      await cdp.ev(`document.querySelectorAll('.tab')[0].click()`);
+      await sleep(250);
+
+      const d = await cdp.ev(`(() => {
+        const R = el => { const b = el.getBoundingClientRect(); return {l:Math.round(b.left),t:Math.round(b.top),r:Math.round(b.right),b:Math.round(b.bottom),w:Math.round(b.width),h:Math.round(b.height)}; };
+        const app = document.querySelector('.app');
+        const tabs = document.querySelector('.tabs');
+        const stage = document.querySelector('.stage');
+        const main = document.querySelector('main');
+        const pet = document.getElementById('pet');
+        const de = document.documentElement;
+        return {
+          app: R(app), tabs: R(tabs), stage: R(stage), main: R(main),
+          tabPos: getComputedStyle(tabs).position,
+          overflowX: de.scrollWidth - de.clientWidth,
+          petW: Math.round(pet.getBoundingClientRect().width),
+          petShown: pet.getBoundingClientRect().width > 40 && pet.getBoundingClientRect().height > 40,
+          gridCols: getComputedStyle(document.getElementById('grid')).gridTemplateColumns.trim().split(/\\s+/).length,
+          feedCards: [...document.querySelectorAll('#panel-feed .card')].map(R)
+        };
+      })()`);
+      const tag = vw + 'px';
+      check(`[${tag}] 容器已铺开（不再是 480 窄条）`, d.app.w >= 1100, 'app=' + d.app.w + 'px');
+      check(`[${tag}] 导航从底部移到了顶部`, d.tabPos !== 'fixed' && d.tabs.t <= 6, `pos=${d.tabPos} top=${d.tabs.t}`);
+      check(`[${tag}] 导航与容器等宽对齐`, Math.abs(d.tabs.w - d.app.w) <= 2, `${d.tabs.w} vs ${d.app.w}`);
+      check(`[${tag}] 双栏并排：左栏宠物 / 右栏数据`, d.stage.r <= d.main.l + 2 && Math.abs(d.stage.t - d.main.t) < 60,
+        `stage右${d.stage.r} main左${d.main.l}`);
+      check(`[${tag}] 左栏宽度符合设计（400px）`, d.stage.w >= 360 && d.stage.w <= 440, 'w=' + d.stage.w);
+      check(`[${tag}] 挑餐品网格升到 3 列`, d.gridCols === 3, d.gridCols + ' 列');
+      check(`[${tag}] 喂麦麦面板两张卡占满整行`, d.feedCards.length === 2 && d.feedCards[0].w > 600, 'card0=' + (d.feedCards[0] || {}).w);
+      check(`[${tag}] 宠物舞台可见且尺寸正常`, d.petShown && d.petW >= 170, 'petW=' + d.petW);
+      check(`[${tag}] 无横向溢出`, d.overflowX <= 1, 'overflowX=' + d.overflowX);
+      check(`[${tag}] 全程无异常`, cdp.exceptions.length === 0 && cdp.consoleErrors.length === 0, '');
+    }
+
+    /* 双栏的核心价值：滚右栏数据时，左栏宠物一直在 */
+    await cdp.ev(`window.scrollTo(0, 620)`);
+    await sleep(350);
+    const sticky = await cdp.ev(`Math.round(document.querySelector('.stage').getBoundingClientRect().top)`);
+    check('左栏宠物滚动时常驻（sticky 生效）', sticky >= 50 && sticky <= 130, 'stage.top=' + sticky);
+
+    /* 面板内卡片确实铺成两列（营养面板是最典型的双列内容） */
+    await cdp.ev(`window.scrollTo(0,0); document.querySelectorAll('.tab')[2].click()`);
+    await sleep(350);
+    const twoCol = await cdp.ev(`(() => {
+      const cards = [...document.querySelectorAll('#panel-nutrition .card')].map(c => {
+        const b = c.getBoundingClientRect();
+        return { l: Math.round(b.left), t: Math.round(b.top), w: Math.round(b.width) };
+      });
+      const rowMap = {};
+      cards.forEach(c => { const k = Math.round(c.t / 10); (rowMap[k] = rowMap[k] || []).push(c.l); });
+      const rows = Object.values(rowMap).filter(a => a.length >= 2);
+      return { n: cards.length, pairs: rows.length, firstRowLefts: rows[0] || [], cardW: cards[0] ? cards[0].w : 0,
+               overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+    })()`);
+    check('营养面板卡片自动铺成两列', twoCol.pairs >= 1 && twoCol.cardW > 300 && twoCol.cardW < 620,
+      `${twoCol.n} 张卡 · ${twoCol.pairs} 行并排 · 卡宽 ${twoCol.cardW}`);
+    check('桌面端营养面板无横向溢出', twoCol.overflowX <= 1, 'overflowX=' + twoCol.overflowX);
+
+    /* 桌面端交互可用性：点餐品 → 进篮子 → 喂食 */
+    await cdp.ev(`document.querySelectorAll('.tab')[0].click()`);
+    await sleep(250);
+    const deskFeed = await cdp.ev(`(() => {
+      const it = document.querySelector('#grid .item');
+      it.click();
+      return { picked: document.getElementById('basketCount').textContent,
+               btnH: Math.round(document.getElementById('feedBtn').getBoundingClientRect().height) };
+    })()`);
+    check('桌面端点选餐品可加入篮子', /\d/.test(deskFeed.picked) && !/^0/.test(deskFeed.picked), deskFeed.picked);
+    check('桌面端喂食按钮尺寸正常', deskFeed.btnH >= 40, 'h=' + deskFeed.btnH);
+
+    /* 桌面专属：键盘快捷键 1~5 切面板 */
+    await cdp.ev(`window.dispatchEvent(new KeyboardEvent('keydown', { key: '3' }))`);
+    await sleep(350);
+    const keyNav = await cdp.ev(`(() => ({
+      tab: [...document.querySelectorAll('.tab')].findIndex(t => t.classList.contains('on')),
+      panel: [...document.querySelectorAll('.panel')].findIndex(p => p.classList.contains('on')),
+      badge: getComputedStyle(document.querySelectorAll('.tab')[2], '::after').content
+    }))()`);
+    check('桌面快捷键切面板（按 3 → 营养）', keyNav.tab === 2 && keyNav.panel === 2, `tab=${keyNav.tab} panel=${keyNav.panel}`);
+    check('导航按钮带快捷键角标', /3/.test(keyNav.badge), keyNav.badge);
+
+    /* 打字时不能抢键 */
+    await cdp.ev(`(() => {
+      document.querySelectorAll('.tab')[0].click();
+      const s = document.getElementById('search'); if (s) s.focus();
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: '3' }));
+    })()`);
+    await sleep(300);
+    const guard = await cdp.ev(`[...document.querySelectorAll('.tab')].findIndex(t => t.classList.contains('on'))`);
+    check('在输入框打字时不误切面板', guard === 0, 'tab=' + guard);
+
+    /* 恢复手机视口，交给后面的截图章节 */
+    await cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 3, mobile: true });
+    await sleep(300);
+    await cdp.ev(`document.querySelectorAll('.tab')[0].click(); window.scrollTo(0,0)`);
+    await sleep(250);
+
+    console.log('\n【15】截图');
     await cdp.ev(`window.scrollTo(0,0)`);
     await sleep(350);
     const shotMobile = await cdp.send('Page.captureScreenshot', {
@@ -471,17 +578,36 @@ async function waitReady(cdp, timeoutLoops = 60) {
     fs.writeFileSync(path.join(outDir, `screenshot-today${SUFFIX}.png`), Buffer.from(shotToday.result.data, 'base64'));
     check('今日营养面板截图已保存', true, `assets/screenshot-today${SUFFIX}.png`);
 
-    await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
-    await sleep(400);
-    await cdp.ev(`document.querySelectorAll('.tab')[0].click()`);
-    await sleep(250);
+    /* 桌面端：默认「喂麦麦」双栏工作台（全页截，方便直接当 README 配图） */
+    await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+    await sleep(450);
+    await cdp.ev(`window.scrollTo(0,0); document.querySelectorAll('.tab')[0].click()`);
+    await sleep(300);
+    await cdp.ev(`(() => { const it = document.querySelector('#grid .item'); if (it) it.click(); document.getElementById('feedBtn').click(); })()`);
+    await sleep(1000);
+    await cdp.ev(`window.scrollTo(0,0)`);
+    await sleep(300);
     const shotDesk = await cdp.send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(outDir, `screenshot-desktop${SUFFIX}.png`), Buffer.from(shotDesk.result.data, 'base64'));
     check('桌面截图已保存', true, `assets/screenshot-desktop${SUFFIX}.png`);
 
+    /* 桌面端：营养面板（双列排布最能体现桌面版的信息架构） */
+    await cdp.ev(`window.scrollTo(0,0); document.querySelectorAll('.tab')[2].click()`);
+    await sleep(400);
+    const shotDeskNu = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
+    fs.writeFileSync(path.join(outDir, `screenshot-desktop-nutrition${SUFFIX}.png`), Buffer.from(shotDeskNu.result.data, 'base64'));
+    check('桌面营养面板截图已保存', true, `assets/screenshot-desktop-nutrition${SUFFIX}.png`);
+
+    /* 桌面端：成长面板 */
+    await cdp.ev(`window.scrollTo(0,0); document.querySelectorAll('.tab')[3].click()`);
+    await sleep(400);
+    const shotDeskPet = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
+    fs.writeFileSync(path.join(outDir, `screenshot-desktop-growth${SUFFIX}.png`), Buffer.from(shotDeskPet.result.data, 'base64'));
+    check('桌面成长面板截图已保存', true, `assets/screenshot-desktop-growth${SUFFIX}.png`);
+
     await cdp.send('Emulation.clearDeviceMetricsOverride');
 
-    console.log('\n【15】交互后异常复查');
+    console.log('\n【16】交互后异常复查');
     check('交互全过程无未捕获异常', cdp.exceptions.length === 0, cdp.exceptions.slice(0, 3).join(' | '));
     check('交互全过程无 console.error', cdp.consoleErrors.length === 0, cdp.consoleErrors.slice(0, 3).join(' | '));
 

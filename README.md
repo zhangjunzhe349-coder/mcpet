@@ -11,11 +11,18 @@
 [技术架构](#-技术架构) · [和同类比好在哪](#-和同类比好在哪) · [参赛声明](CONTEST_DECLARATION.md)
 
 ![零依赖](https://img.shields.io/badge/%E9%9B%B6%E4%BE%9D%E8%B5%96-%E5%8D%95%E6%96%87%E4%BB%B6%20HTML-FFC72C)
-![校验](https://img.shields.io/badge/%E6%97%A0%E5%A4%B4%E6%B5%8F%E8%A7%88%E5%99%A8%E6%96%AD%E8%A8%80-69%2F69%20%E9%80%9A%E8%BF%87-2E9E63)
+![校验](https://img.shields.io/badge/%E6%97%A0%E5%A4%B4%E6%B5%8F%E8%A7%88%E5%99%A8%E6%96%AD%E8%A8%80-99%2F99%20%E9%80%9A%E8%BF%87-2E9E63)
+![双端](https://img.shields.io/badge/%E9%80%82%E9%85%8D-%E6%89%8B%E6%9C%BA%20%2B%20%E7%94%B5%E8%84%91%E5%8F%8C%E7%AB%AF-7BB662)
 ![数据](https://img.shields.io/badge/%E8%90%A5%E5%85%BB%E6%95%B0%E6%8D%AE-%E5%AE%98%E6%96%B9%20MCP%20158%20%E6%9D%A1-DA291C)
 ![License](https://img.shields.io/badge/License-MIT-6B5B47)
 
-<img src="assets/screenshot-mobile.png" alt="麦麦宠物 McPet 手机端界面" width="330">
+<img src="assets/screenshot-desktop.png" alt="电脑版 · 左栏宠物常驻，右栏数据铺开" width="100%">
+
+<p>
+  <img src="assets/screenshot-mobile.png" alt="手机版 · 底部 Tab 单手流" width="180">
+  <img src="assets/screenshot-desktop-nutrition.png" alt="电脑版营养面板 · 卡片自动双列" width="180">
+  <img src="assets/screenshot-desktop-growth.png" alt="电脑版成长面板" width="180">
+</p>
 
 </div>
 
@@ -66,6 +73,18 @@
 
 单个 HTML 文件，**零依赖、零构建、零 Token、零网络请求**。
 双击就能开，丢到任何静态托管都能跑，微信里点开也能玩。
+
+**手机和电脑是两套布局，不是把手机页面放大：**
+
+| | 手机（< 1024px） | 电脑（≥ 1024px） |
+|---|---|---|
+| 导航 | 底部 Tab，单手可及 | **顶部横向导航，支持数字键 `1`~`5` 切换** |
+| 版式 | 单列纵向流 | **双栏工作台：左栏宠物常驻，右栏数据铺开** |
+| 宠物 | 顶部固定舞台 | **滚动右侧数据时它一直停在视野里** |
+| 内容密度 | 大按钮、大触摸目标（≥44px） | 卡片自动铺两列，挑餐品网格升 3 列 |
+
+电脑版不是"把窄条居中"，而是把手机端的纵向流重构成符合桌面认知的信息架构 ——
+两种尺寸各自独立断言，改一边不会碰坏另一边。
 
 ---
 
@@ -203,7 +222,7 @@ cd mcpet
 # 从模板 + 数据集重新生成单文件页面
 python tools/build.py
 
-# 无头浏览器全量校验（渲染 / 交互 / 养成持久化 / 手机适配 / 截图）
+# 无头浏览器全量校验（渲染 / 交互 / 养成持久化 / 手机适配 / 桌面适配 / 截图）
 node tools/browser-check.js
 ```
 
@@ -229,7 +248,7 @@ mcpet/
 │   └── index.template.html     ← 页面源文件（含占位符）
 ├── tools/
 │   ├── build.py                ← 构建：模板 + 数据 → index.html
-│   └── browser-check.js        ← 无头浏览器全量校验（69 项断言）
+│   └── browser-check.js        ← 无头浏览器全量校验（99 项断言，含桌面端）
 └── assets/
     └── screenshot-*.png
 ```

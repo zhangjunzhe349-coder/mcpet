@@ -183,7 +183,7 @@ export MCD_MCP_TOKEN="你的Token"
 # 2. 重新拉取营养数据并重建页面
 python tools/build.py
 
-# 3. 全量校验（渲染 / 交互 / 养成持久化 / 手机适配 / 截图，共 69 项断言）
+# 3. 全量校验（渲染 / 交互 / 养成持久化 / 手机适配 / 桌面适配 / 截图，共 99 项断言）
 node tools/browser-check.js
 
 # 校验线上部署（Edge 不读 HTTP_PROXY，需显式指定代理）
