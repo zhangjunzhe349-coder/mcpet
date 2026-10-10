@@ -3,9 +3,10 @@
  * 无头浏览器校验：麦麦宠物 index.html
  *
  * 目的：静态检查全绿 ≠ 页面能跑、能点。本脚本真起浏览器，
- *       抓运行时异常、断言渲染产物、真点一遍交互、出截图。
+ *       抓运行时异常、断言渲染产物、真点一遍交互、验证养成数据持久化、出截图。
  *
  * 用法：NODE_PATH=<node workspace>/node_modules node tools/browser-check.js
+ *       TARGET_URL=https://... node tools/browser-check.js   # 校验线上部署
  */
 const http = require('http');
 const fs = require('fs');
@@ -123,6 +124,24 @@ async function connect() {
   throw new Error('连不上 CDP');
 }
 
+/* 等待应用就绪（轮询判据，不睡固定秒数） */
+async function waitReady(cdp, timeoutLoops = 60) {
+  for (let i = 0; i < timeoutLoops; i++) {
+    const boot = await cdp.ev(`(() => ({
+      ready: document.readyState,
+      items: document.querySelectorAll('#grid .item').length,
+      cats: document.querySelectorAll('#cats .cat').length,
+      budget: document.querySelectorAll('#budRows .budrow').length,
+      ach: document.querySelectorAll('#achGrid .achitem').length,
+      hasData: typeof NUTRITION !== 'undefined' && NUTRITION.count > 0,
+      count: (typeof NUTRITION !== 'undefined' && NUTRITION.count) || 0
+    }))()`);
+    if (boot && !boot.__err && boot.items > 0 && boot.cats > 0 && boot.budget > 0 && boot.ach > 0) return boot;
+    await sleep(250);
+  }
+  return null;
+}
+
 /* ---------------- 主流程 ---------------- */
 (async () => {
   if (!EDGE) { console.error('找不到 Edge/Chrome 可执行文件'); process.exit(1); }
@@ -153,24 +172,19 @@ async function connect() {
     await cdp.send('Log.enable');
     await cdp.send('Page.enable');
 
-    /* --- 等待「应用真的就绪」：轮询判据（不是睡固定秒数） --- */
-    let boot = null;
-    for (let i = 0; i < 60; i++) {
-      boot = await cdp.ev(`(() => ({
-        ready: document.readyState,
-        items: document.querySelectorAll('#grid .item').length,
-        cats: document.querySelectorAll('#cats .cat').length,
-        hasData: typeof NUTRITION !== 'undefined' && NUTRITION.count > 0,
-        count: (typeof NUTRITION !== 'undefined' && NUTRITION.count) || 0
-      }))()`);
-      if (boot && !boot.__err && boot.items > 0 && boot.cats > 0) break;
-      await sleep(250);
-    }
-    if (boot && boot.__err) console.error('就绪探测异常:', boot.__err);
+    const boot = await waitReady(cdp);
+    if (!boot) console.error('就绪探测未通过（超时）');
+
+    /* 每次校验从干净存档开始，保证断言可预期 */
+    await cdp.ev(`(() => { try{ localStorage.removeItem('mcpet.v2'); }catch(e){} return 1; })()`);
+    await cdp.send('Page.reload', { ignoreCache: true });
+    await sleep(600);
+    const boot2 = await waitReady(cdp);
 
     console.log('\n【1】静态结构与数据装载');
-    check('应用启动完成（readyState）', boot && boot.ready === 'complete', boot && boot.ready);
-    check('MCP 营养数据已内联并解析', !!(boot && boot.hasData), boot && ('count=' + boot.count));
+    check('应用启动完成（readyState）', !!(boot2 && boot2.ready === 'complete'), boot2 && boot2.ready);
+    check('MCP 营养数据已内联并解析', !!(boot2 && boot2.hasData), boot2 && ('count=' + boot2.count));
+    check('营养数据为 158 条全量表', !!(boot2 && boot2.count === 158), boot2 && ('count=' + boot2.count));
 
     console.log('\n【2】运行时异常');
     check('无未捕获异常', cdp.exceptions.length === 0, cdp.exceptions.slice(0, 3).join(' | '));
@@ -183,63 +197,161 @@ async function connect() {
       const c = document.getElementById('pet');
       const ctx = c.getContext('2d');
       const d = ctx.getImageData(0,0,c.width,c.height).data;
-      let ink = 0, yellow = 0;
-      for (let i=0;i<d.length;i+=4){
+      let ink = 0, yellow = 0, minX = 999, maxX = -1;
+      for (let y=0;y<c.height;y++) for (let x=0;x<c.width;x++){
+        const i = (y*c.width+x)*4;
         if (d[i+3] <= 20) continue;
         ink++;
+        if (x<minX) minX=x; if (x>maxX) maxX=x;
         if (d[i]>200 && d[i+1]>150 && d[i+1]<230 && d[i+2]<120) yellow++;
       }
       return {
-        ink, yellow,
+        ink, yellow, petWidth: maxX-minX+1,
         grid: document.querySelectorAll('#grid .item').length,
         cats: document.querySelectorAll('#cats .cat').length,
-        scoreText: document.getElementById('topNum').textContent,
+        tabs: document.querySelectorAll('.tab').length,
         mcpCards: document.querySelectorAll('#mcpCards .mcpcard').length,
+        budget: document.querySelectorAll('#budRows .budrow').length,
+        ach: document.querySelectorAll('#achGrid .achitem').length,
         petBox: (()=>{const r=c.getBoundingClientRect();return [Math.round(r.width),Math.round(r.height)];})()
       };
     })()`);
     check('宠物 canvas 已绘制（非透明像素 > 3000）', render && render.ink > 3000, render && ('ink=' + render.ink));
     check('宠物主色（麦当劳黄）已上色', render && render.yellow > 1500, render && ('yellow=' + render.yellow));
     check('宠物画布尺寸 > 0', render && render.petBox[0] > 0 && render.petBox[1] > 0, render && render.petBox.join('x'));
+    check('宠物为参数化体型（横向占比合理）', render && render.petWidth >= 90 && render.petWidth <= 200, render && ('w=' + render.petWidth + 'px'));
     check('餐品网格首屏 12 项', render && render.grid === 12, render && ('grid=' + render.grid));
     check('分类 chips 6 个', render && render.cats === 6, render && ('cats=' + render.cats));
+    check('底部 Tab 5 个', render && render.tabs === 5, render && ('tabs=' + render.tabs));
     check('MCP 功能卡 4 张', render && render.mcpCards === 4, render && ('cards=' + render.mcpCards));
+    check('每日预算 6 项', render && render.budget === 6, render && ('budget=' + render.budget));
+    check('成就墙 12 项', render && render.ach === 12, render && ('ach=' + render.ach));
 
-    console.log('\n【4】交互：点击一份餐品喂食');
+    console.log('\n【4】交互：把餐品加进「这一餐」');
     const before = await cdp.ev(`document.getElementById('topNum').textContent`);
     await cdp.ev(`document.querySelector('#grid .item').click()`);
-    await sleep(900);
+    await sleep(250);
+    const basket1 = await cdp.ev(`(() => ({
+      count: document.getElementById('basketCount').textContent,
+      chips: document.querySelectorAll('#basket .bchip').length,
+      picked: document.querySelectorAll('#grid .item.picked').length,
+      disabled: document.getElementById('feedBtn').disabled,
+      bigNum: document.getElementById('bigNum').textContent,
+      kv: document.querySelectorAll('#kv div').length,
+      advisor: document.getElementById('advisor').textContent.slice(0,30)
+    }))()`);
+    check('点餐品进入「这一餐」', basket1.count === '1 项' && basket1.chips === 1, `count=${basket1.count} chips=${basket1.chips}`);
+    check('已选餐品在网格中高亮', basket1.picked >= 1, 'picked=' + basket1.picked);
+    check('「喂给麦麦」按钮已可用', basket1.disabled === false, 'disabled=' + basket1.disabled);
+    check('选中即出营养分析（不等喂食）', /^\d+$/.test(basket1.bigNum) && basket1.kv === 6, `bigNum=${basket1.bigNum} kv=${basket1.kv}`);
+    check('搭配顾问已给出建议', basket1.advisor.length > 4, basket1.advisor);
+
+    console.log('\n【5】交互：再加一项 → 喂给麦麦');
+    await cdp.ev(`(() => { const it = document.querySelectorAll('#grid .item')[3]; it.click(); })()`);
+    await sleep(250);
+    const basket2 = await cdp.ev(`document.querySelectorAll('#basket .bchip').length`);
+    check('第二项成功加入', basket2 === 2, 'chips=' + basket2);
+
+    await cdp.ev(`document.getElementById('feedBtn').click()`);
+    await sleep(950);
     const after = await cdp.ev(`(() => ({
       topNum: document.getElementById('topNum').textContent,
       dot: document.getElementById('topDot').className,
       petState: document.getElementById('petState').textContent,
       bubble: document.getElementById('bubble').textContent,
-      kv: document.querySelectorAll('#kv div').length,
-      brows: document.querySelectorAll('#bars .brow').length,
-      radarPolys: document.querySelectorAll('#radar svg polygon').length,
-      radarPaths: document.querySelectorAll('#radar svg circle').length,
+      chips: document.querySelectorAll('#basket .bchip').length,
       prows: document.querySelectorAll('#parts .prow').length,
       ringOffset: document.getElementById('ringArc').getAttribute('stroke-dashoffset'),
       tags: document.querySelectorAll('#petTags .tag').length,
-      advice: document.getElementById('advice').textContent.slice(0, 40)
+      advice: document.getElementById('advice').textContent.slice(0, 40),
+      radarPolys: document.querySelectorAll('#radar svg polygon').length,
+      radarDots: document.querySelectorAll('#radar svg circle').length,
+      brows: document.querySelectorAll('#bars .brow').length,
+      mini: document.querySelectorAll('#miniChips .mchip').length,
+      gotAch: document.querySelectorAll('#achGrid .achitem.got').length,
+      todayMeals: document.getElementById('todayMeals').textContent,
+      todayKcal: document.getElementById('todayKcal').textContent,
+      petStats: document.querySelectorAll('#petStats div').length,
+      lvlNum: document.getElementById('lvlNum').textContent,
+      stored: (()=>{ try{ return JSON.parse(localStorage.getItem('mcpet.v2')||'{}').meals?.length ?? -1; }catch(e){ return -2; } })()
     }))()`);
-    check('健康分从占位变为数字', before === '--' && /^\d+$/.test(after.topNum), `${before} → ${after.topNum}`);
+    check('喂食后健康分更新为数字', /^\d+$/.test(after.topNum), `${before} → ${after.topNum}`);
     check('宠物状态标签已更新', after.petState && after.petState !== '待喂食', after.petState);
     check('台词气泡已更新', after.bubble && !after.bubble.includes('想喂我吃点什么'), after.bubble);
-    check('营养卡 6 项数值', after.kv === 6, 'kv=' + after.kv);
-    check('逐项对照 6 行', after.brows === 6, 'brows=' + after.brows);
-    /* 4 层网格 + 1 条参考线多边形 + 1 个数据多边形 = 6 */
-    check('雷达图已绘制（6 个多边形 + 6 个数据点）', after.radarPolys >= 6 && after.radarPaths >= 6,
-      `polygons=${after.radarPolys} circles=${after.radarPaths}`);
-    check('健康分分项 5 行', after.prows === 5, 'prows=' + after.prows);
+    check('喂食后篮子已清空', after.chips === 0, 'chips=' + after.chips);
+    check('喂食后仍展示这一餐的分析', after.prows === 5 && /^\d+$/.test(after.topNum), 'prows=' + after.prows);
     check('分数环有进度（dashoffset 已改变）', parseFloat(after.ringOffset) < 282.7, 'offset=' + after.ringOffset);
     check('营养标签已渲染', after.tags >= 1, 'tags=' + after.tags);
-    check('建议文案已生成', after.advice.includes('麦麦建议'), after.advice);
+    check('麦麦建议已生成', after.advice.includes('麦麦建议'), after.advice);
+    check('雷达图已绘制（≥6 多边形 + ≥6 数据点）', after.radarPolys >= 6 && after.radarDots >= 6, `polygons=${after.radarPolys} dots=${after.radarDots}`);
+    check('逐项对照 6 行', after.brows === 6, 'brows=' + after.brows);
+    check('顶部状态条 3 枚', after.mini === 3, 'mini=' + after.mini);
 
-    console.log('\n【5】交互：搜索 / 分类 / 换餐');
+    console.log('\n【6】养成系统：账本 / 预算 / 成就');
+    check('今日餐数已记录为 2', after.todayMeals === '2', 'todayMeals=' + after.todayMeals);
+    check('今日热量 > 0', Number(after.todayKcal) > 0, 'todayKcal=' + after.todayKcal);
+    check('成长统计 6 项', after.petStats === 6, 'petStats=' + after.petStats);
+    check('等级从 Lv.1 起步', after.lvlNum === '1', 'lvl=' + after.lvlNum);
+    check('喂食即解锁首个成就', after.gotAch >= 1, 'got=' + after.gotAch);
+    check('养成数据已写入 localStorage', after.stored === 2, 'meals=' + after.stored);
+
+    console.log('\n【7】重新加载 → 养成数据持久化');
+    await cdp.send('Page.reload', { ignoreCache: true });
+    await sleep(700);
+    await waitReady(cdp);
+    const persisted = await cdp.ev(`(() => ({
+      stored: (()=>{ try{ return JSON.parse(localStorage.getItem('mcpet.v2')||'{}').meals?.length ?? -1; }catch(e){ return -2; } })(),
+      todayKcal: document.getElementById('todayKcal').textContent,
+      stat1: document.querySelector('#petStats div b').textContent,
+      mini: document.querySelectorAll('#miniChips .mchip').length
+    }))()`);
+    check('刷新后养成账本仍在（2 餐）', persisted.stored === 2, 'meals=' + persisted.stored);
+    check('刷新后今日热量已恢复', Number(persisted.todayKcal) > 0, 'todayKcal=' + persisted.todayKcal);
+    check('刷新后成长面板显示累计喂食', /^2/.test(persisted.stat1), 'stat=' + persisted.stat1);
+    check('刷新后顶部状态条已恢复', persisted.mini === 3, 'mini=' + persisted.mini);
+
+    console.log('\n【8】累计养成：体态随饮食变化（连喂 6 顿高热量）');
+    const petWBefore = await cdp.ev(`(() => {
+      const c = document.getElementById('pet'), d = c.getContext('2d').getImageData(0,0,c.width,c.height).data;
+      let minX=999,maxX=-1;
+      for (let y=0;y<c.height;y++) for (let x=0;x<c.width;x++){
+        if (d[(y*c.width+x)*4+3] <= 20) continue;
+        if (x<minX) minX=x; if (x>maxX) maxX=x;
+      }
+      return maxX-minX+1;
+    })()`);
+    await cdp.ev(`(() => {
+      const top = NUTRITION.items.filter(i=>i.energyKcal>0).sort((a,b)=>b.energyKcal-a.energyKcal).slice(0,6);
+      const zero = NUTRITION.items.find(i=>i.energyKcal===0);
+      const lowNa = NUTRITION.items.find(i=>i.productName==='小薯条');
+      BASKET = top.concat([zero, lowNa].filter(Boolean));
+      renderBasket(); renderGrid(); renderAnalysis();
+      document.getElementById('feedBtn').click();
+    })()`);
+    await sleep(1000);
+    const petWAfter = await cdp.ev(`(() => {
+      const c = document.getElementById('pet'), d = c.getContext('2d').getImageData(0,0,c.width,c.height).data;
+      let minX=999,maxX=-1;
+      for (let y=0;y<c.height;y++) for (let x=0;x<c.width;x++){
+        if (d[(y*c.width+x)*4+3] <= 20) continue;
+        if (x<minX) minX=x; if (x>maxX) maxX=x;
+      }
+      return { w: maxX-minX+1, meals: S.meals.length, girth: Number(anim.target.toFixed(2)),
+        achGot: S.ach.length, wallGot: document.querySelectorAll('#achGrid .achitem.got').length,
+        lvl: document.getElementById('lvlNum').textContent,
+        form: (document.querySelectorAll('#petStats div b')[5]||{}).textContent||'' };
+    })()`);
+    check('连喂高热量后宠物明显变宽（累计体态生效）', petWAfter.w >= petWBefore + 8,
+      `${petWBefore}px → ${petWAfter.w}px (girth=${petWAfter.girth})`);
+    check('累计餐数已累加到 10', petWAfter.meals === 10, 'meals=' + petWAfter.meals);
+    check('体态被判定为圆润/微胖', /圆润|微胖/.test(petWAfter.form), 'form=' + petWAfter.form);
+    check('多成就已解锁（首喂/老饕/聪明替换/控钠）', petWAfter.achGot >= 4, 'ach=' + petWAfter.achGot);
+    check('成就墙与账本一致', petWAfter.wallGot === petWAfter.achGot, `wall=${petWAfter.wallGot} book=${petWAfter.achGot}`);
+
+    console.log('\n【9】交互：搜索 / 分类');
     await cdp.ev(`(() => { const s = document.getElementById('search');
       s.value = '巨无霸'; s.dispatchEvent(new Event('input', {bubbles:true})); })()`);
-    await sleep(200);
+    await sleep(220);
     const searched = await cdp.ev(`(() => ({
       n: document.querySelectorAll('#grid .item').length,
       first: (document.querySelector('#grid .item .nm')||{}).textContent || ''
@@ -249,9 +361,9 @@ async function connect() {
     const catBefore = await cdp.ev(`(document.querySelector('#grid .item .nm')||{}).textContent||''`);
     await cdp.ev(`(() => { const s = document.getElementById('search');
       s.value = ''; s.dispatchEvent(new Event('input', {bubbles:true})); })()`);
-    await sleep(200);
+    await sleep(220);
     await cdp.ev(`document.querySelectorAll('#cats .cat')[4].click()`);
-    await sleep(250);
+    await sleep(260);
     const catAfter = await cdp.ev(`(() => ({
       n: document.querySelectorAll('#grid .item').length,
       first: (document.querySelector('#grid .item .nm')||{}).textContent||'',
@@ -260,34 +372,45 @@ async function connect() {
     check('切到「甜品」分类生效（高亮 + 列表换血）',
       catAfter.onCat === '甜品' && !!catAfter.first && catAfter.first !== catBefore,
       `on=${catAfter.onCat} 首项「${catBefore}」→「${catAfter.first}」 n=${catAfter.n}`);
-
-    await cdp.ev(`(() => { document.querySelectorAll('#cats .cat')[0].click(); })()`);
+    await cdp.ev(`document.querySelectorAll('#cats .cat')[0].click()`);
     await sleep(150);
-    const secondFeed = await cdp.ev(`(() => {
-      const items = document.querySelectorAll('#grid .item');
-      items[5].click(); return items[5].dataset.n; })()`);
-    await sleep(900);
-    const after2 = await cdp.ev(`document.getElementById('topNum').textContent`);
-    check('换一份餐品后健康分重算', /^\d+$/.test(after2), `${secondFeed} → ${after2} 分`);
 
-    console.log('\n【6】交互：Tab 切换');
-    for (const [idx, pid] of [[1,'nutrition'],[2,'score'],[3,'more']]) {
+    console.log('\n【10】交互：Tab 切换（今日 / 营养 / 成长）');
+    for (const [idx, pid] of [[1,'today'],[2,'nutrition'],[3,'pet']]) {
       await cdp.ev(`document.querySelectorAll('.tab')[${idx}].click()`);
-      await sleep(180);
+      await sleep(220);
       const vis = await cdp.ev(`(() => {
         const p = document.getElementById('panel-${pid}');
         return { on: p.classList.contains('on'), h: Math.round(p.getBoundingClientRect().height) };
       })()`);
       check(`Tab→${pid} 面板可见`, vis.on && vis.h > 0, `h=${vis.h}`);
     }
+    const petPanel = await cdp.ev(`(() => ({
+      stats: document.querySelectorAll('#petStats div').length,
+      ach: document.querySelectorAll('#achGrid .achitem.got').length,
+      card: document.querySelectorAll('#cardStat div').length,
+      name: document.getElementById('nameInput').value
+    }))()`);
+    check('成长面板：统计/成就/养成卡预览齐备',
+      petPanel.stats === 6 && petPanel.card === 6 && petPanel.name === '麦麦',
+      `stats=${petPanel.stats} card=${petPanel.card} name=${petPanel.name}`);
 
-    console.log('\n【7】交互：饮食报告解析');
+    console.log('\n【11】交互：改名生效');
+    await cdp.ev(`(() => { const i = document.getElementById('nameInput');
+      i.value = '小薯条'; document.getElementById('renameBtn').click(); })()`);
+    await sleep(250);
+    const renamed = await cdp.ev(`document.getElementById('petNameLbl').textContent`);
+    check('改名同步到宠物名', renamed === '小薯条', 'name=' + renamed);
+
+    console.log('\n【12】交互：饮食报告解析');
     const orderJson = JSON.stringify({
       data: { orders: [{ orderId: 'TEST', products: [{ productName: '巨无霸' }, { productName: '中薯条' }, { productName: '可口可乐中杯' }] }] }
     });
+    await cdp.ev(`document.querySelectorAll('.tab')[4].click()`);
+    await sleep(200);
     await cdp.ev(`(() => { const t = document.getElementById('orderIn');
       t.value = ${JSON.stringify(orderJson)}; document.getElementById('analyzeBtn').click(); })()`);
-    await sleep(400);
+    await sleep(420);
     const rep = await cdp.ev(`(() => ({
       shown: document.getElementById('report').style.display,
       items: document.querySelectorAll('#report .ritem').length,
@@ -296,11 +419,11 @@ async function connect() {
     check('饮食报告已生成', rep.shown === 'block' && rep.items >= 1, `items=${rep.items}`);
     check('报告含平均健康分', /平均健康分/.test(rep.text), rep.text.slice(0, 70));
 
-    console.log('\n【8】手机端适配（390×844）');
+    console.log('\n【13】手机端适配（390×844）');
     await cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 3, mobile: true });
-    await sleep(400);
+    await sleep(450);
     await cdp.ev(`document.querySelectorAll('.tab')[0].click()`);
-    await sleep(200);
+    await sleep(220);
     const m = await cdp.ev(`(() => {
       const de = document.documentElement;
       const tabs = document.querySelector('.tabs');
@@ -312,18 +435,20 @@ async function connect() {
         tabH: Math.round(tab.getBoundingClientRect().height),
         itemH: Math.round(kb.getBoundingClientRect().height),
         appBottomGap: Math.round(de.clientHeight - document.querySelector('.tabs').getBoundingClientRect().top),
-        searchFont: parseFloat(getComputedStyle(document.getElementById('search')).fontSize)
+        searchFont: parseFloat(getComputedStyle(document.getElementById('search')).fontSize),
+        feedBtnH: Math.round(document.getElementById('feedBtn').getBoundingClientRect().height)
       };
     })()`);
     check('无横向溢出', m.overflowX <= 1, 'overflowX=' + m.overflowX);
     check('底部 Tab 为 fixed', m.tabsFixed === true, String(m.tabsFixed));
     check('底部 Tab 贴在视口底边', m.appBottomGap >= 44 && m.appBottomGap <= 90, 'gap=' + m.appBottomGap);
     check('触摸目标 ≥44px', m.tabH >= 44 && m.itemH >= 44, `tab=${m.tabH} item=${m.itemH}`);
+    check('喂食主按钮 ≥44px', m.feedBtnH >= 44, 'h=' + m.feedBtnH);
     check('搜索框字号 ≥16px（防 iOS 缩放）', m.searchFont >= 16, m.searchFont + 'px');
 
-    console.log('\n【9】截图');
+    console.log('\n【14】截图');
     await cdp.ev(`window.scrollTo(0,0)`);
-    await sleep(300);
+    await sleep(350);
     const shotMobile = await cdp.send('Page.captureScreenshot', {
       format: 'png', captureBeyondViewport: true,
     });
@@ -332,17 +457,33 @@ async function connect() {
     fs.writeFileSync(path.join(outDir, `screenshot-mobile${SUFFIX}.png`), Buffer.from(shotMobile.result.data, 'base64'));
     check('手机全页截图已保存', true, `assets/screenshot-mobile${SUFFIX}.png`);
 
+    /* 成长面板单独来一张（展示养成卡区） */
+    await cdp.ev(`document.querySelectorAll('.tab')[3].click()`);
+    await sleep(350);
+    const shotGrow = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
+    fs.writeFileSync(path.join(outDir, `screenshot-growth${SUFFIX}.png`), Buffer.from(shotGrow.result.data, 'base64'));
+    check('成长面板截图已保存', true, `assets/screenshot-growth${SUFFIX}.png`);
+
+    /* 今日营养面板 */
+    await cdp.ev(`document.querySelectorAll('.tab')[1].click()`);
+    await sleep(350);
+    const shotToday = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
+    fs.writeFileSync(path.join(outDir, `screenshot-today${SUFFIX}.png`), Buffer.from(shotToday.result.data, 'base64'));
+    check('今日营养面板截图已保存', true, `assets/screenshot-today${SUFFIX}.png`);
+
     await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
     await sleep(400);
+    await cdp.ev(`document.querySelectorAll('.tab')[0].click()`);
+    await sleep(250);
     const shotDesk = await cdp.send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(outDir, `screenshot-desktop${SUFFIX}.png`), Buffer.from(shotDesk.result.data, 'base64'));
     check('桌面截图已保存', true, `assets/screenshot-desktop${SUFFIX}.png`);
 
     await cdp.send('Emulation.clearDeviceMetricsOverride');
 
-    /* 收尾再抓一次异常：交互过程中可能才暴露 */
-    console.log('\n【10】交互后异常复查');
+    console.log('\n【15】交互后异常复查');
     check('交互全过程无未捕获异常', cdp.exceptions.length === 0, cdp.exceptions.slice(0, 3).join(' | '));
+    check('交互全过程无 console.error', cdp.consoleErrors.length === 0, cdp.consoleErrors.slice(0, 3).join(' | '));
 
   } catch (e) {
     console.error('\n[fatal]', e && e.stack || e);
