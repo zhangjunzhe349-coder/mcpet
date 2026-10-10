@@ -18,3 +18,9 @@ Thumbs.db
 
 # 线上校验临时截图（本地验证产物，不入仓库）
 assets/*-live.png
+
+# 竞品对标分析（本地研究资料，含第三方 README 原文，不入仓库）
+data/_ranking_*.json
+data/_competitors/
+rank_tmp.md
+docs/对标分析-营养赛道.md
