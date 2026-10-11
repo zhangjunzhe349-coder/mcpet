@@ -53,8 +53,26 @@ body{
   background-image:radial-gradient(#EFD9A8 1px,transparent 1px);
   background-size:14px 14px;opacity:.55;pointer-events:none;
 }
-.petwrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px}
-#pet{image-rendering:pixelated;display:block;filter:drop-shadow(0 6px 0 rgba(58,42,22,.07))}
+/* ---------- 首屏钩子：一进来就知道这是什么 ---------- */
+.hook{
+  margin:12px 16px 2px;padding:15px 17px 16px;border-radius:20px;
+  background:#FFFFFF;border:1px solid #F2E2BE;
+  box-shadow:0 3px 0 rgba(255,199,44,.14);
+}
+.hook h1{margin:0;font-size:19px;line-height:1.36;letter-spacing:-.2px;color:#3A2A16}
+.hook h1 em{font-style:normal;color:#DA291C}
+.hook p{margin:8px 0 0;font-size:12.5px;line-height:1.72;color:#7A6A53}
+.hook p b{color:#3A2A16}
+.hook .steps{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.hook .steps span{
+  font-size:11.5px;color:#5B4A35;background:#FFFBF0;border:1px solid #EFDFC0;
+  border-radius:999px;padding:4px 10px 4px 5px;display:inline-flex;align-items:center;gap:6px;
+}
+.hook .steps i{
+  font-style:normal;width:16px;height:16px;border-radius:50%;background:#FFC72C;color:#3A2A16;
+  font-size:10px;font-weight:600;display:grid;place-items:center;flex:0 0 auto;
+}
+.petwrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px}#pet{image-rendering:pixelated;display:block;filter:drop-shadow(0 6px 0 rgba(58,42,22,.07))}
 .petname{font-size:13px;font-weight:600;letter-spacing:.3px}
 .petname span{font-weight:400;color:#9C8B76;font-size:11px;margin-left:6px}
 .bubble{
@@ -69,12 +87,30 @@ body{
   width:9px;height:9px;background:#FFFFFF;border-left:1px solid #EADCC4;border-top:1px solid #EADCC4;
   margin-bottom:-5px;
 }
-.eatlayer{position:absolute;left:50%;top:120px;transform:translateX(-50%);pointer-events:none;font-size:30px;opacity:0}
-.eatlayer.go{animation:eatfly .62s cubic-bezier(.4,0,.6,1) forwards}
-@keyframes eatfly{
-  0%{opacity:1;transform:translate(-50%,20px) scale(.6) rotate(-10deg)}
-  60%{opacity:1;transform:translate(-50%,-46px) scale(1.15) rotate(8deg)}
-  100%{opacity:0;transform:translate(-50%,-72px) scale(.8) rotate(-6deg)}
+/* ---------- 投喂：餐品从下方抛入、飞进宠物嘴里 ----------
+   坐标以 .petwrap 为基准：画布是第一子元素，宠物嘴在 y≈105px 处 */
+.feedlayer{position:absolute;inset:0;pointer-events:none;z-index:6}
+.flyitem{position:absolute;left:50%;top:108px;width:46px;height:46px;margin:-23px 0 0 -23px;opacity:0;filter:drop-shadow(0 3px 2px rgba(58,42,22,.2))}
+.flyitem svg{width:100%;height:100%;display:block}
+.flyitem.go{animation:feedarc .7s cubic-bezier(.34,.02,.3,1) forwards}
+@keyframes feedarc{
+  0%  {opacity:0;transform:translate(var(--ox,0px),96px) scale(.5) rotate(-22deg)}
+  16% {opacity:1}
+  44% {transform:translate(calc(var(--ox,0px)*.5),16px) scale(1.1) rotate(14deg)}
+  72% {opacity:1;transform:translate(0,4px) scale(.78) rotate(-4deg)}
+  100%{opacity:0;transform:translate(0,9px) scale(.05) rotate(6deg)}
+}
+.flykcal{position:absolute;left:50%;top:58px;font-size:12px;font-weight:600;color:#B32216;background:#FFF3D2;border:1px solid #F0DFA8;border-radius:999px;padding:2px 9px;white-space:nowrap;opacity:0;pointer-events:none}
+.flykcal.go{animation:kcalup 1s ease-out forwards}
+@keyframes kcalup{
+  0%  {opacity:0;transform:translate(-50%,0) scale(.7)}
+  22% {opacity:1;transform:translate(-50%,-6px) scale(1)}
+  100%{opacity:0;transform:translate(-50%,-52px) scale(.92)}
+}
+.petwrap.gulp #pet{animation:gulp .34s ease}
+@keyframes gulp{
+  0%,100%{transform:scale(1)}
+  45%{transform:scale(1.12,.88)}
 }
 .chips-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:2px}
 .tag{font-size:10.5px;padding:2px 8px;border-radius:999px;background:#FFFFFF;border:1px solid #EADCC4;color:#8A7B6B}
@@ -129,17 +165,35 @@ main{padding:0 16px}
 .cat.on{background:#3A2A16;color:#FFF3D2;border-color:#3A2A16}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:4px}
 .item{
-  text-align:left;border:1px solid #EADCC4;background:#FFFDF8;border-radius:14px;
-  padding:10px 11px;cursor:pointer;font-family:inherit;color:inherit;
+  display:flex;flex-wrap:wrap;align-items:center;column-gap:9px;row-gap:3px;text-align:left;
+  border:1px solid #EADCC4;background:#FFFDF8;border-radius:14px;
+  padding:9px 10px;cursor:pointer;font-family:inherit;color:inherit;
   transition:transform .12s ease,border-color .15s,box-shadow .15s;position:relative;overflow:hidden;
 }
 .item:active{transform:scale(.975)}
 .item:hover{border-color:#FFC72C;box-shadow:0 3px 0 rgba(255,199,44,.22)}
 .item.picked{border-color:#D99400;background:#FFFBEE;box-shadow:0 0 0 2px rgba(255,199,44,.35) inset}
-.item .nm{font-size:12.5px;font-weight:600;display:block;line-height:1.35;min-height:34px}
-.item .kc{font-size:11px;color:#9C8B76;margin-top:4px;display:flex;justify-content:space-between;align-items:center}
-.item .bar{height:3px;border-radius:2px;background:#F0E6D4;margin-top:6px;overflow:hidden}
+.item .ic{
+  flex:0 0 38px;width:38px;height:38px;border-radius:12px;
+  background:#FFF6E2;border:1px solid #F2E3C4;display:grid;place-items:center;
+}
+.item .ic svg{width:32px;height:32px;display:block}
+.item .col{flex:1;min-width:0}
+.item .nm{
+  font-size:12.5px;font-weight:600;line-height:1.32;display:-webkit-box;
+  -webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:32px;
+}
+.item .kc{
+  flex:1 0 100%;font-size:11px;color:#9C8B76;
+  display:flex;justify-content:space-between;align-items:center;gap:8px;white-space:nowrap;
+}
+.item .bar{flex:1 0 100%;height:3px;border-radius:2px;background:#F0E6D4;overflow:hidden}
 .item .bar i{display:block;height:100%;border-radius:2px}
+.item.picked .ic{background:#FFF0C9;border-color:#EBCF86}
+#nName{display:inline-flex;align-items:center;gap:5px;vertical-align:middle}
+#nName .ni{width:18px;height:18px;display:inline-block;vertical-align:middle;flex:0 0 auto}
+#nName .ni svg{width:18px;height:18px;display:block}
+#nName .ni + .ni{margin-left:-8px}
 .empty{text-align:center;padding:26px 10px;color:#9C8B76;font-size:12.5px}
 .morebtn{
   width:100%;margin-top:10px;border:1px dashed #DCCBB0;background:transparent;border-radius:12px;
@@ -151,7 +205,9 @@ main{padding:0 16px}
 .baskethead{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;font-weight:600}
 .baskethead small{font-weight:400;color:#9C8B76;font-size:11px}
 .bchips{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0 2px}
-.bchip{display:inline-flex;align-items:center;gap:6px;background:#FFFFFF;border:1px solid #F0DFA8;border-radius:999px;padding:3px 5px 3px 11px;font-size:11.5px;color:#5B4A35}
+.bchip{display:inline-flex;align-items:center;gap:5px;background:#FFFFFF;border:1px solid #F0DFA8;border-radius:999px;padding:3px 5px 3px 7px;font-size:11.5px;color:#5B4A35}
+.bchip .icv{flex:0 0 17px;width:17px;height:17px;display:grid;place-items:center}
+.bchip .icv svg{width:17px;height:17px;display:block}
 .bchip b{font-weight:600}
 .bchip em{font-style:normal;color:#9C8B76;font-size:10.5px}
 .bx{border:0;background:#F0E2C8;color:#7A6A53;width:17px;height:17px;border-radius:50%;font-size:12px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
@@ -352,6 +408,9 @@ footer a{color:#8A7B6B}
     column-gap:24px;align-items:start;
   }
   .top{grid-column:1/-1;position:static;padding:18px 0 14px}
+  .hook{grid-column:1/-1;margin:0 0 18px;padding:18px 22px 19px}
+  .hook h1{font-size:22px}
+  .hook p{font-size:13px;max-width:760px}
   /* 左栏=宠物常驻房：撑满一屏可用高度，宠物垂直居中，滚动右栏时它一直在 */
   .stage{
     grid-column:1;margin:0;position:sticky;top:76px;
@@ -393,6 +452,16 @@ footer a{color:#8A7B6B}
     </div>
   </header>
 
+  <div class="hook">
+    <h1>点一份麦当劳，喂给它 —— <em>它会长成你这顿饭的样子</em></h1>
+    <p>麦麦宠物把麦当劳 <b>158 款餐品的真实营养数据</b>，翻译成一只看得见的宠物：高蛋白它会发光、热量超标它圆一圈、钠太高它当场喊渴。<b>你不用看懂数字，看它就行。</b></p>
+    <div class="steps">
+      <span><i>1</i>挑餐品，凑成「这一餐」</span>
+      <span><i>2</i>喂给它，看它怎么变</span>
+      <span><i>3</i>看健康分与搭配建议</span>
+    </div>
+  </div>
+
   <section class="stage">
     <div class="petwrap">
       <canvas id="pet" width="200" height="200" aria-label="像素宠物 麦麦"></canvas>
@@ -400,8 +469,8 @@ footer a{color:#8A7B6B}
       <div class="bubble" id="bubble">今天想喂我吃点什么呀？点一份餐，我就知道你吃了啥 👀</div>
       <div class="chips-row" id="petTags"></div>
       <div class="minichips" id="miniChips"></div>
+      <div class="feedlayer" id="feedLayer"></div>
     </div>
-    <div class="eatlayer" id="eatLayer">🍔</div>
   </section>
 
   <main>
@@ -578,7 +647,7 @@ footer a{color:#8A7B6B}
    数据源：麦当劳中国官方 MCP · list-nutrition-foods
    本页内联快照，故无需 Token 即可完整体验核心功能。
    ========================================================= */
-const NUTRITION = {"source":"麦当劳中国 MCP · list-nutrition-foods","endpoint":"https://mcp.mcd.cn","fetched_at":"2026-10-10T14:07:51+08:00","unit_note":"energyKj=千焦, energyKcal=千卡(大卡), protein/fat/carbohydrate=克, sodium/calcium=毫克","count":158,"items":[{"productName":"猪柳麦满分","nutritionDescription":null,"energyKj":1288,"energyKcal":308,"protein":16,"fat":16,"carbohydrate":24,"sodium":781,"calcium":213},{"productName":"猪柳蛋麦满分","nutritionDescription":null,"energyKj":1618,"energyKcal":387,"protein":23,"fat":21,"carbohydrate":25,"sodium":846,"calcium":243},{"productName":"烟肉蛋麦满分","nutritionDescription":null,"energyKj":1089,"energyKcal":260,"protein":16,"fat":10,"carbohydrate":24,"sodium":483,"calcium":238},{"productName":"火腿扒麦满分","nutritionDescription":null,"energyKj":1092,"energyKcal":261,"protein":14,"fat":12,"carbohydrate":24,"sodium":608,"calcium":131},{"productName":"中薯条","nutritionDescription":null,"energyKj":1210,"energyKcal":289,"protein":4,"fat":12,"carbohydrate":38,"sodium":165,"calcium":18},{"productName":"大薯条","nutritionDescription":null,"energyKj":1587,"energyKcal":379,"protein":6,"fat":16,"carbohydrate":50,"sodium":216,"calcium":23},{"productName":"小薯条","nutritionDescription":null,"energyKj":877,"energyKcal":210,"protein":3,"fat":9,"carbohydrate":28,"sodium":120,"calcium":13},{"productName":"迷你薯条","nutritionDescription":null,"energyKj":444,"energyKcal":106,"protein":2,"fat":4,"carbohydrate":14,"sodium":61,"calcium":6},{"productName":"圆筒冰淇淋","nutritionDescription":null,"energyKj":391,"energyKcal":93,"protein":2,"fat":3,"carbohydrate":14,"sodium":36,"calcium":77},{"productName":"麦乐鸡5块","nutritionDescription":null,"energyKj":890,"energyKcal":213,"protein":12,"fat":12,"carbohydrate":13,"sodium":422,"calcium":9},{"productName":"大杯玉米杯","nutritionDescription":null,"energyKj":365,"energyKcal":87,"protein":4,"fat":1,"carbohydrate":12,"sodium":2,"calcium":10},{"productName":"小杯玉米杯","nutritionDescription":null,"energyKj":223,"energyKcal":53,"protein":2,"fat":1,"carbohydrate":7,"sodium":1,"calcium":6},{"productName":"麦辣鸡翅-2块","nutritionDescription":null,"energyKj":937,"energyKcal":224,"protein":13,"fat":15,"carbohydrate":9,"sodium":537,"calcium":13},{"productName":"朱古力新地","nutritionDescription":null,"energyKj":1178,"energyKcal":282,"protein":5,"fat":9,"carbohydrate":44,"sodium":126,"calcium":182},{"productName":"草莓新地","nutritionDescription":null,"energyKj":1027,"energyKcal":245,"protein":4,"fat":6,"carbohydrate":43,"sodium":84,"calcium":158},{"productName":"奥利奥麦旋风","nutritionDescription":null,"energyKj":1115,"energyKcal":266,"protein":5,"fat":9,"carbohydrate":40,"sodium":116,"calcium":185},{"productName":"草莓麦旋风","nutritionDescription":null,"energyKj":1234,"energyKcal":295,"protein":6,"fat":9,"carbohydrate":47,"sodium":122,"calcium":186},{"productName":"香芋派","nutritionDescription":null,"energyKj":971,"energyKcal":232,"protein":2,"fat":12,"carbohydrate":28,"sodium":159,"calcium":7},{"productName":"菠萝派","nutritionDescription":null,"energyKj":925,"energyKcal":221,"protein":2,"fat":11,"carbohydrate":27,"sodium":147,"calcium":5},{"productName":"大脆鸡扒麦满分","nutritionDescription":null,"energyKj":1510,"energyKcal":361,"protein":16,"fat":17,"carbohydrate":35,"sodium":804,"calcium":130},{"productName":"原味板烧鸡腿麦满分","nutritionDescription":null,"energyKj":1029,"energyKcal":246,"protein":15,"fat":9,"carbohydrate":25,"sodium":611,"calcium":133},{"productName":"双层原味板烧鸡腿麦满分","nutritionDescription":null,"energyKj":1486,"energyKcal":355,"protein":23,"fat":17,"carbohydrate":27,"sodium":984,"calcium":138},{"productName":"吉士汉堡包","nutritionDescription":null,"energyKj":1231,"energyKcal":294,"protein":16,"fat":12,"carbohydrate":30,"sodium":673,"calcium":144},{"productName":"双层吉士汉堡","nutritionDescription":null,"energyKj":1796,"energyKcal":429,"protein":27,"fat":22,"carbohydrate":31,"sodium":1017,"calcium":232},{"productName":"麦香鸡","nutritionDescription":null,"energyKj":1546,"energyKcal":369,"protein":15,"fat":17,"carbohydrate":39,"sodium":731,"calcium":73},{"productName":"麦香鱼","nutritionDescription":null,"energyKj":1359,"energyKcal":325,"protein":16,"fat":13,"carbohydrate":35,"sodium":556,"calcium":99},{"productName":"麦辣鸡腿汉堡","nutritionDescription":null,"energyKj":2029,"energyKcal":485,"protein":24,"fat":24,"carbohydrate":42,"sodium":1208,"calcium":154},{"productName":"板烧鸡腿堡","nutritionDescription":null,"energyKj":1638,"energyKcal":391,"protein":23,"fat":17,"carbohydrate":35,"sodium":1041,"calcium":93},{"productName":"巨无霸","nutritionDescription":null,"energyKj":2146,"energyKcal":513,"protein":27,"fat":26,"carbohydrate":42,"sodium":961,"calcium":171},{"productName":"培根蔬萃双层牛堡","nutritionDescription":null,"energyKj":1850,"energyKcal":442,"protein":24,"fat":23,"carbohydrate":34,"sodium":728,"calcium":73},{"productName":"可乐中杯","nutritionDescription":null,"energyKj":616,"energyKcal":147,"protein":0,"fat":0,"carbohydrate":36,"sodium":0,"calcium":10},{"productName":"可乐大杯","nutritionDescription":null,"energyKj":936,"energyKcal":224,"protein":0,"fat":0,"carbohydrate":55,"sodium":0,"calcium":15},{"productName":"可乐小杯","nutritionDescription":null,"energyKj":446,"energyKcal":107,"protein":0,"fat":0,"carbohydrate":26,"sodium":0,"calcium":7},{"productName":"雪碧中杯","nutritionDescription":null,"energyKj":440,"energyKcal":105,"protein":0,"fat":0,"carbohydrate":26,"sodium":29,"calcium":0},{"productName":"雪碧大杯","nutritionDescription":null,"energyKj":669,"energyKcal":160,"protein":0,"fat":0,"carbohydrate":39,"sodium":45,"calcium":0},{"productName":"雪碧小杯","nutritionDescription":null,"energyKj":319,"energyKcal":76,"protein":0,"fat":0,"carbohydrate":19,"sodium":21,"calcium":0},{"productName":"无糖可口可乐中杯","nutritionDescription":null,"energyKj":0,"energyKcal":0,"protein":0,"fat":0,"carbohydrate":1,"sodium":35,"calcium":0},{"productName":"无糖可口可乐大杯","nutritionDescription":null,"energyKj":0,"energyKcal":0,"protein":0,"fat":0,"carbohydrate":1,"sodium":53,"calcium":0},{"productName":"无糖可口可乐小杯","nutritionDescription":null,"energyKj":0,"energyKcal":0,"protein":0,"fat":0,"carbohydrate":0,"sodium":25,"calcium":0},{"productName":"大杯鲜萃咖啡","nutritionDescription":null,"energyKj":54,"energyKcal":13,"protein":1,"fat":0,"carbohydrate":0,"sodium":3,"calcium":8},{"productName":"小杯鲜萃咖啡","nutritionDescription":null,"energyKj":63,"energyKcal":15,"protein":1,"fat":0,"carbohydrate":3,"sodium":2,"calcium":6},{"productName":"锡兰红茶","nutritionDescription":null,"energyKj":8,"energyKcal":2,"protein":0,"fat":0,"carbohydrate":0,"sodium":0,"calcium":5},{"productName":"热朱古力","nutritionDescription":null,"energyKj":525,"energyKcal":125,"protein":2,"fat":2,"carbohydrate":22,"sodium":107,"calcium":36},{"productName":"纯牛奶（盒装）","nutritionDescription":null,"energyKj":541,"energyKcal":129,"protein":7,"fat":7,"carbohydrate":10,"sodium":73,"calcium":231},{"productName":"麦旋酷阳光橙","nutritionDescription":null,"energyKj":955,"energyKcal":228,"protein":1,"fat":2,"carbohydrate":50,"sodium":77,"calcium":52},{"productName":"浓缩咖啡","nutritionDescription":null,"energyKj":54,"energyKcal":13,"protein":1,"fat":0,"carbohydrate":2,"sodium":0,"calcium":7},{"productName":"那么大鸡排","nutritionDescription":null,"energyKj":1612,"energyKcal":385,"protein":24,"fat":21,"carbohydrate":24,"sodium":996,"calcium":13},{"productName":"阳光柠檬红茶中杯","nutritionDescription":null,"energyKj":488,"energyKcal":117,"protein":0,"fat":0,"carbohydrate":29,"sodium":17,"calcium":0},{"productName":"阳光柠檬红茶大杯","nutritionDescription":null,"energyKj":743,"energyKcal":178,"protein":0,"fat":0,"carbohydrate":43,"sodium":25,"calcium":0},{"productName":"阳光柠檬红茶小杯","nutritionDescription":null,"energyKj":354,"energyKcal":85,"protein":0,"fat":0,"carbohydrate":21,"sodium":12,"calcium":0},{"productName":"脆薯饼","nutritionDescription":null,"energyKj":612,"energyKcal":146,"protein":1,"fat":9,"carbohydrate":14,"sodium":311,"calcium":7},{"productName":"脆香油条","nutritionDescription":null,"energyKj":844,"energyKcal":202,"protein":5,"fat":12,"carbohydrate":19,"sodium":230,"calcium":18},{"productName":"100%苹果汁","nutritionDescription":null,"energyKj":368,"energyKcal":88,"protein":0,"fat":0,"carbohydrate":21,"sodium":0,"calcium":0},{"productName":"汉堡包","nutritionDescription":null,"energyKj":1039,"energyKcal":248,"protein":13,"fat":8,"carbohydrate":29,"sodium":492,"calcium":61},{"productName":"麦乐鸡4块","nutritionDescription":null,"energyKj":712,"energyKcal":170,"protein":10,"fat":10,"carbohydrate":11,"sodium":337,"calcium":7},{"productName":"纯悦","nutritionDescription":"能量约清水1杯","energyKj":0,"energyKcal":0,"protein":0,"fat":0,"carbohydrate":0,"sodium":0,"calcium":0},{"productName":"苹果片","nutritionDescription":null,"energyKj":133,"energyKcal":32,"protein":0,"fat":0,"carbohydrate":7,"sodium":0,"calcium":18},{"productName":"不素之霸双层牛堡","nutritionDescription":null,"energyKj":2062,"energyKcal":493,"protein":28,"fat":27,"carbohydrate":34,"sodium":1012,"calcium":75},{"productName":"双层深海鳕鱼堡","nutritionDescription":null,"energyKj":2029,"energyKcal":485,"protein":28,"fat":21,"carbohydrate":46,"sodium":917,"calcium":147},{"productName":"儿童鱼排堡","nutritionDescription":null,"energyKj":1126,"energyKcal":269,"protein":15,"fat":6,"carbohydrate":36,"sodium":442,"calcium":58},{"productName":"培根安格斯厚牛堡","nutritionDescription":null,"energyKj":2959,"energyKcal":707,"protein":34,"fat":44,"carbohydrate":43,"sodium":1037,"calcium":161},{"productName":"芝士安格斯厚牛堡","nutritionDescription":"能量约鲈鱼1条","energyKj":2914,"energyKcal":696,"protein":32,"fat":44,"carbohydrate":43,"sodium":897,"calcium":150},{"productName":"yeyeyeye奶冻款","nutritionDescription":null,"energyKj":932,"energyKcal":223,"protein":1,"fat":4,"carbohydrate":43,"sodium":37,"calcium":64},{"productName":"皮蛋鸡肉粥","nutritionDescription":null,"energyKj":558,"energyKcal":133,"protein":6,"fat":3,"carbohydrate":20,"sodium":611,"calcium":20},{"productName":"雪菜脆笋鸡肉粥","nutritionDescription":null,"energyKj":504,"energyKcal":120,"protein":4,"fat":2,"carbohydrate":22,"sodium":552,"calcium":14},{"productName":"猪柳炒双蛋堡","nutritionDescription":null,"energyKj":1827,"energyKcal":437,"protein":25,"fat":24,"carbohydrate":29,"sodium":705,"calcium":116},{"productName":"yeyeyeye爆珠款","nutritionDescription":null,"energyKj":889,"energyKcal":212,"protein":1,"fat":3,"carbohydrate":42,"sodium":122,"calcium":124},{"productName":"柠檬拉明顿","nutritionDescription":"能量约猕猴桃2个","energyKj":506,"energyKcal":121,"protein":2,"fat":7,"carbohydrate":12,"sodium":35,"calcium":17},{"productName":"芝士双层安格斯厚牛堡","nutritionDescription":null,"energyKj":4195,"energyKcal":1003,"protein":58,"fat":65,"carbohydrate":46,"sodium":1373,"calcium":251},{"productName":"培根双层安格斯厚牛堡","nutritionDescription":null,"energyKj":4128,"energyKcal":987,"protein":55,"fat":64,"carbohydrate":46,"sodium":1191,"calcium":226},{"productName":"火腿扒早安营养卷","nutritionDescription":null,"energyKj":1857,"energyKcal":444,"protein":16,"fat":24,"carbohydrate":39,"sodium":1065,"calcium":108},{"productName":"麦麦脆汁鸡-琵琶腿","nutritionDescription":null,"energyKj":1372,"energyKcal":328,"protein":21,"fat":20,"carbohydrate":16,"sodium":905,"calcium":24},{"productName":"德式图林根香肠","nutritionDescription":null,"energyKj":366,"energyKcal":87,"protein":5,"fat":6,"carbohydrate":2,"sodium":293,"calcium":5},{"productName":"图林根香肠早安营养卷","nutritionDescription":null,"energyKj":1779,"energyKcal":425,"protein":14,"fat":23,"carbohydrate":38,"sodium":977,"calcium":68},{"productName":"麦麦脆汁鸡-带骨里脊","nutritionDescription":null,"energyKj":1389,"energyKcal":332,"protein":22,"fat":18,"carbohydrate":16,"sodium":812,"calcium":25},{"productName":"【美汁源】“黄金橙橙”","nutritionDescription":null,"energyKj":691,"energyKcal":165,"protein":0,"fat":0,"carbohydrate":41,"sodium":53,"calcium":0},{"productName":"优品豆浆大杯","nutritionDescription":null,"energyKj":844,"energyKcal":202,"protein":8,"fat":4,"carbohydrate":33,"sodium":43,"calcium":21},{"productName":"优品豆浆小杯","nutritionDescription":null,"energyKj":633,"energyKcal":151,"protein":6,"fat":3,"carbohydrate":25,"sodium":32,"calcium":15},{"productName":"浓浓黑巧雪冰中杯","nutritionDescription":null,"energyKj":1501,"energyKcal":359,"protein":8,"fat":12,"carbohydrate":51,"sodium":224,"calcium":207},{"productName":"浓浓黑巧雪冰大杯","nutritionDescription":null,"energyKj":1857,"energyKcal":444,"protein":11,"fat":14,"carbohydrate":65,"sodium":258,"calcium":251},{"productName":"特浓奶香雪冰中杯","nutritionDescription":null,"energyKj":1124,"energyKcal":269,"protein":6,"fat":11,"carbohydrate":36,"sodium":180,"calcium":188},{"productName":"特浓奶香雪冰大杯","nutritionDescription":null,"energyKj":1291,"energyKcal":309,"protein":7,"fat":12,"carbohydrate":42,"sodium":192,"calcium":223},{"productName":"浓浓抹茶雪冰中杯","nutritionDescription":null,"energyKj":1208,"energyKcal":289,"protein":7,"fat":11,"carbohydrate":39,"sodium":181,"calcium":220},{"productName":"浓浓抹茶雪冰大杯","nutritionDescription":null,"energyKj":1418,"energyKcal":339,"protein":8,"fat":12,"carbohydrate":48,"sodium":194,"calcium":270},{"productName":"热牛奶中杯","nutritionDescription":null,"energyKj":738,"energyKcal":176,"protein":10,"fat":8,"carbohydrate":15,"sodium":101,"calcium":319},{"productName":"热牛奶大杯","nutritionDescription":null,"energyKj":1006,"energyKcal":240,"protein":13,"fat":11,"carbohydrate":21,"sodium":137,"calcium":435},{"productName":"热牛奶小杯","nutritionDescription":null,"energyKj":617,"energyKcal":147,"protein":8,"fat":7,"carbohydrate":13,"sodium":84,"calcium":267},{"productName":"冰牛奶中杯","nutritionDescription":null,"energyKj":939,"energyKcal":224,"protein":13,"fat":11,"carbohydrate":19,"sodium":128,"calcium":406},{"productName":"冰牛奶大杯","nutritionDescription":null,"energyKj":1127,"energyKcal":269,"protein":15,"fat":13,"carbohydrate":23,"sodium":154,"calcium":487},{"productName":"冰牛奶小杯","nutritionDescription":null,"energyKj":617,"energyKcal":147,"protein":8,"fat":7,"carbohydrate":13,"sodium":84,"calcium":267},{"productName":"冰奶铁中杯","nutritionDescription":null,"energyKj":618,"energyKcal":148,"protein":8,"fat":7,"carbohydrate":13,"sodium":77,"calcium":251},{"productName":"冰奶铁大杯","nutritionDescription":null,"energyKj":678,"energyKcal":162,"protein":9,"fat":7,"carbohydrate":15,"sodium":85,"calcium":275},{"productName":"冰奶铁小杯","nutritionDescription":null,"energyKj":358,"energyKcal":86,"protein":5,"fat":4,"carbohydrate":8,"sodium":44,"calcium":144},{"productName":"热奶铁中杯","nutritionDescription":null,"energyKj":779,"energyKcal":186,"protein":11,"fat":8,"carbohydrate":17,"sodium":99,"calcium":320},{"productName":"热奶铁大杯","nutritionDescription":null,"energyKj":1040,"energyKcal":249,"protein":14,"fat":11,"carbohydrate":22,"sodium":134,"calcium":431},{"productName":"热奶铁小杯","nutritionDescription":null,"energyKj":559,"energyKcal":134,"protein":8,"fat":6,"carbohydrate":12,"sodium":72,"calcium":231},{"productName":"冰燕麦奶铁中杯","nutritionDescription":null,"energyKj":554,"energyKcal":132,"protein":3,"fat":5,"carbohydrate":17,"sodium":87,"calcium":270},{"productName":"冰燕麦奶铁大杯","nutritionDescription":null,"energyKj":608,"energyKcal":145,"protein":4,"fat":5,"carbohydrate":19,"sodium":96,"calcium":296},{"productName":"冰燕麦奶铁小杯","nutritionDescription":null,"energyKj":322,"energyKcal":77,"protein":2,"fat":3,"carbohydrate":10,"sodium":50,"calcium":155},{"productName":"热燕麦奶铁中杯","nutritionDescription":null,"energyKj":697,"energyKcal":167,"protein":4,"fat":6,"carbohydrate":22,"sodium":112,"calcium":345},{"productName":"热燕麦奶铁大杯","nutritionDescription":null,"energyKj":929,"energyKcal":222,"protein":5,"fat":8,"carbohydrate":29,"sodium":152,"calcium":464},{"productName":"热燕麦奶铁小杯","nutritionDescription":null,"energyKj":500,"energyKcal":120,"protein":3,"fat":5,"carbohydrate":16,"sodium":81,"calcium":248},{"productName":"冰美式中杯","nutritionDescription":null,"energyKj":54,"energyKcal":13,"protein":1,"fat":0,"carbohydrate":2,"sodium":0,"calcium":7},{"productName":"冰美式大杯","nutritionDescription":null,"energyKj":60,"energyKcal":14,"protein":1,"fat":0,"carbohydrate":2,"sodium":0,"calcium":8},{"productName":"冰美式小杯","nutritionDescription":null,"energyKj":41,"energyKcal":10,"protein":1,"fat":0,"carbohydrate":1,"sodium":0,"calcium":6},{"productName":"热美式中杯","nutritionDescription":null,"energyKj":54,"energyKcal":13,"protein":1,"fat":0,"carbohydrate":2,"sodium":0,"calcium":7},{"productName":"热美式大杯","nutritionDescription":null,"energyKj":60,"energyKcal":14,"protein":1,"fat":0,"carbohydrate":2,"sodium":0,"calcium":8},{"productName":"热美式小杯","nutritionDescription":null,"energyKj":41,"energyKcal":10,"protein":1,"fat":0,"carbohydrate":1,"sodium":0,"calcium":6},{"productName":"冰焦糖玛奇朵","nutritionDescription":null,"energyKj":618,"energyKcal":148,"protein":8,"fat":7,"carbohydrate":13,"sodium":77,"calcium":251},{"productName":"热焦糖玛奇朵","nutritionDescription":null,"energyKj":698,"energyKcal":167,"protein":9,"fat":7,"carbohydrate":15,"sodium":88,"calcium":284},{"productName":"卡布奇诺中杯","nutritionDescription":null,"energyKj":698,"energyKcal":167,"protein":9,"fat":7,"carbohydrate":15,"sodium":88,"calcium":285},{"productName":"卡布奇诺大杯","nutritionDescription":null,"energyKj":932,"energyKcal":223,"protein":13,"fat":10,"carbohydrate":20,"sodium":120,"calcium":385},{"productName":"冰浓浓燕麦黑巧中杯","nutritionDescription":null,"energyKj":500,"energyKcal":120,"protein":2,"fat":5,"carbohydrate":16,"sodium":87,"calcium":263},{"productName":"冰浓浓燕麦黑巧大杯","nutritionDescription":null,"energyKj":547,"energyKcal":131,"protein":3,"fat":5,"carbohydrate":17,"sodium":95,"calcium":388},{"productName":"冰燕麦奶中杯","nutritionDescription":null,"energyKj":833,"energyKcal":199,"protein":4,"fat":8,"carbohydrate":26,"sodium":145,"calcium":438},{"productName":"冰燕麦奶大杯","nutritionDescription":null,"energyKj":1000,"energyKcal":239,"protein":5,"fat":9,"carbohydrate":32,"sodium":174,"calcium":525},{"productName":"冰燕麦奶小杯","nutritionDescription":null,"energyKj":547,"energyKcal":131,"protein":3,"fat":5,"carbohydrate":17,"sodium":95,"calcium":288},{"productName":"热燕麦奶中杯","nutritionDescription":null,"energyKj":655,"energyKcal":157,"protein":3,"fat":6,"carbohydrate":21,"sodium":114,"calcium":344},{"productName":"热燕麦奶大杯","nutritionDescription":null,"energyKj":893,"energyKcal":213,"protein":4,"fat":8,"carbohydrate":28,"sodium":156,"calcium":469},{"productName":"热燕麦奶小杯","nutritionDescription":null,"energyKj":547,"energyKcal":131,"protein":3,"fat":5,"carbohydrate":17,"sodium":95,"calcium":288},{"productName":"冰浓浓抹茶牛奶中杯","nutritionDescription":null,"energyKj":821,"energyKcal":196,"protein":8,"fat":6,"carbohydrate":25,"sodium":80,"calcium":275},{"productName":"冰浓浓抹茶牛奶大杯","nutritionDescription":null,"energyKj":1004,"energyKcal":240,"protein":9,"fat":7,"carbohydrate":33,"sodium":89,"calcium":314},{"productName":"热浓浓抹茶牛奶中杯","nutritionDescription":null,"energyKj":996,"energyKcal":238,"protein":11,"fat":8,"carbohydrate":29,"sodium":104,"calcium":351},{"productName":"热浓浓抹茶牛奶大杯","nutritionDescription":null,"energyKj":1393,"energyKcal":333,"protein":14,"fat":12,"carbohydrate":41,"sodium":142,"calcium":482},{"productName":"冰浓浓黑巧中杯","nutritionDescription":null,"energyKj":563,"energyKcal":135,"protein":8,"fat":6,"carbohydrate":12,"sodium":77,"calcium":244},{"productName":"冰浓浓黑巧大杯","nutritionDescription":null,"energyKj":617,"energyKcal":147,"protein":8,"fat":7,"carbohydrate":13,"sodium":84,"calcium":267},{"productName":"热浓浓黑巧中杯","nutritionDescription":null,"energyKj":738,"energyKcal":176,"protein":10,"fat":8,"carbohydrate":15,"sodium":101,"calcium":319},{"productName":"热浓浓黑巧大杯","nutritionDescription":null,"energyKj":1006,"energyKcal":240,"protein":13,"fat":11,"carbohydrate":21,"sodium":137,"calcium":435},{"productName":"川宁伯爵红茶","nutritionDescription":null,"energyKj":7,"energyKcal":2,"protein":0,"fat":0,"carbohydrate":0,"sodium":0,"calcium":0},{"productName":"抹茶阿芙佳朵","nutritionDescription":null,"energyKj":613,"energyKcal":147,"protein":3,"fat":4,"carbohydrate":23,"sodium":50,"calcium":136},{"productName":"咖啡阿芙佳朵","nutritionDescription":null,"energyKj":583,"energyKcal":139,"protein":4,"fat":4,"carbohydrate":21,"sodium":49,"calcium":111},{"productName":"热浓浓燕麦黑巧中杯","nutritionDescription":null,"energyKj":655,"energyKcal":157,"protein":3,"fat":6,"carbohydrate":21,"sodium":114,"calcium":344},{"productName":"热浓浓燕麦黑巧大杯","nutritionDescription":null,"energyKj":893,"energyKcal":213,"protein":4,"fat":8,"carbohydrate":28,"sodium":156,"calcium":469},{"productName":"草莓拉明顿","nutritionDescription":null,"energyKj":507,"energyKcal":121,"protein":2,"fat":8,"carbohydrate":11,"sodium":34,"calcium":17},{"productName":"原味板烧鸡腿炒双蛋堡","nutritionDescription":null,"energyKj":1754,"energyKcal":419,"protein":27,"fat":21,"carbohydrate":30,"sodium":715,"calcium":116},{"productName":"双层猪柳蛋麦满分","nutritionDescription":null,"energyKj":2148,"energyKcal":513,"protein":29,"fat":32,"carbohydrate":26,"sodium":1210,"calcium":249},{"productName":"双层火腿扒麦满分","nutritionDescription":null,"energyKj":1611,"energyKcal":385,"protein":21,"fat":22,"carbohydrate":26,"sodium":979,"calcium":134},{"productName":"脆脆薯条","nutritionDescription":null,"energyKj":1168,"energyKcal":279,"protein":4,"fat":14,"carbohydrate":32,"sodium":540,"calcium":13},{"productName":"麦麦趣鸡球","nutritionDescription":null,"energyKj":1113,"energyKcal":266,"protein":17,"fat":13,"carbohydrate":19,"sodium":789,"calcium":13},{"productName":"酥酥多笋卷","nutritionDescription":null,"energyKj":1431,"energyKcal":342,"protein":14,"fat":15,"carbohydrate":36,"sodium":1044,"calcium":41},{"productName":"薄皮焦香V翅","nutritionDescription":null,"energyKj":804,"energyKcal":192,"protein":17,"fat":11,"carbohydrate":6,"sodium":594,"calcium":15},{"productName":"蜜汁BBQ风味薄皮脆汁鸡-带骨里脊","nutritionDescription":null,"energyKj":637,"energyKcal":152,"protein":20,"fat":5,"carbohydrate":6,"sodium":635,"calcium":28},{"productName":"蜜汁BBQ风味薄皮脆汁鸡-琵琶腿","nutritionDescription":null,"energyKj":724,"energyKcal":173,"protein":18,"fat":9,"carbohydrate":5,"sodium":547,"calcium":15},{"productName":"果然多肉","nutritionDescription":null,"energyKj":2001,"energyKcal":478,"protein":36,"fat":17,"carbohydrate":44,"sodium":1343,"calcium":190},{"productName":"“苹板”支撑Pro","nutritionDescription":null,"energyKj":1993,"energyKcal":476,"protein":25,"fat":18,"carbohydrate":50,"sodium":1077,"calcium":117},{"productName":"专“薯鱼”你","nutritionDescription":null,"energyKj":1936,"energyKcal":463,"protein":18,"fat":17,"carbohydrate":57,"sodium":652,"calcium":123},{"productName":"绝代双翅","nutritionDescription":null,"energyKj":1964,"energyKcal":469,"protein":32,"fat":27,"carbohydrate":23,"sodium":1167,"calcium":34},{"productName":"牛气满满","nutritionDescription":null,"energyKj":2073,"energyKcal":495,"protein":26,"fat":24,"carbohydrate":42,"sodium":764,"calcium":79},{"productName":"蜜汁快乐","nutritionDescription":null,"energyKj":1081,"energyKcal":258,"protein":22,"fat":9,"carbohydrate":20,"sodium":721,"calcium":34},{"productName":"迷你朱古力新地","nutritionDescription":null,"energyKj":586,"energyKcal":140,"protein":3,"fat":4,"carbohydrate":22,"sodium":63,"calcium":90},{"productName":"迷你草莓新地","nutritionDescription":null,"energyKj":511,"energyKcal":122,"protein":2,"fat":3,"carbohydrate":21,"sodium":42,"calcium":78},{"productName":"鲜蔬蛋沙拉叠叠卷","nutritionDescription":null,"energyKj":1114,"energyKcal":266,"protein":11,"fat":14,"carbohydrate":24,"sodium":518,"calcium":62},{"productName":"鸡肉蛋沙拉叠叠卷","nutritionDescription":null,"energyKj":1621,"energyKcal":387,"protein":17,"fat":21,"carbohydrate":31,"sodium":842,"calcium":67},{"productName":"中杯怡泉+C","nutritionDescription":null,"energyKj":461,"energyKcal":110,"protein":0,"fat":0,"carbohydrate":27,"sodium":0,"calcium":0},{"productName":"大杯怡泉+C","nutritionDescription":null,"energyKj":701,"energyKcal":168,"protein":0,"fat":0,"carbohydrate":41,"sodium":0,"calcium":0},{"productName":"蒜了吧黄油风味薄皮脆汁鸡-琵琶腿","nutritionDescription":null,"energyKj":688,"energyKcal":164,"protein":19,"fat":6,"carbohydrate":6,"sodium":867,"calcium":9},{"productName":"蒜了吧黄油风味薄皮脆汁鸡-带骨里脊","nutritionDescription":null,"energyKj":526,"energyKcal":126,"protein":19,"fat":2,"carbohydrate":4,"sodium":750,"calcium":59},{"productName":"柠萌风味薄皮焦香V翅","nutritionDescription":null,"energyKj":855,"energyKcal":204,"protein":18,"fat":11,"carbohydrate":6,"sodium":768,"calcium":22}],"built_at":"2026-10-10T17:07:17+08:00"};
+const NUTRITION = {"source":"麦当劳中国 MCP · list-nutrition-foods","endpoint":"https://mcp.mcd.cn","fetched_at":"2026-10-10T14:07:51+08:00","unit_note":"energyKj=千焦, energyKcal=千卡(大卡), protein/fat/carbohydrate=克, sodium/calcium=毫克","count":158,"items":[{"productName":"猪柳麦满分","nutritionDescription":null,"energyKj":1288,"energyKcal":308,"protein":16,"fat":16,"carbohydrate":24,"sodium":781,"calcium":213},{"productName":"猪柳蛋麦满分","nutritionDescription":null,"energyKj":1618,"energyKcal":387,"protein":23,"fat":21,"carbohydrate":25,"sodium":846,"calcium":243},{"productName":"烟肉蛋麦满分","nutritionDescription":null,"energyKj":1089,"energyKcal":260,"protein":16,"fat":10,"carbohydrate":24,"sodium":483,"calcium":238},{"productName":"火腿扒麦满分","nutritionDescription":null,"energyKj":1092,"energyKcal":261,"protein":14,"fat":12,"carbohydrate":24,"sodium":608,"calcium":131},{"productName":"中薯条","nutritionDescription":null,"energyKj":1210,"energyKcal":289,"protein":4,"fat":12,"carbohydrate":38,"sodium":165,"calcium":18},{"productName":"大薯条","nutritionDescription":null,"energyKj":1587,"energyKcal":379,"protein":6,"fat":16,"carbohydrate":50,"sodium":216,"calcium":23},{"productName":"小薯条","nutritionDescription":null,"energyKj":877,"energyKcal":210,"protein":3,"fat":9,"carbohydrate":28,"sodium":120,"calcium":13},{"productName":"迷你薯条","nutritionDescription":null,"energyKj":444,"energyKcal":106,"protein":2,"fat":4,"carbohydrate":14,"sodium":61,"calcium":6},{"productName":"圆筒冰淇淋","nutritionDescription":null,"energyKj":391,"energyKcal":93,"protein":2,"fat":3,"carbohydrate":14,"sodium":36,"calcium":77},{"productName":"麦乐鸡5块","nutritionDescription":null,"energyKj":890,"energyKcal":213,"protein":12,"fat":12,"carbohydrate":13,"sodium":422,"calcium":9},{"productName":"大杯玉米杯","nutritionDescription":null,"energyKj":365,"energyKcal":87,"protein":4,"fat":1,"carbohydrate":12,"sodium":2,"calcium":10},{"productName":"小杯玉米杯","nutritionDescription":null,"energyKj":223,"energyKcal":53,"protein":2,"fat":1,"carbohydrate":7,"sodium":1,"calcium":6},{"productName":"麦辣鸡翅-2块","nutritionDescription":null,"energyKj":937,"energyKcal":224,"protein":13,"fat":15,"carbohydrate":9,"sodium":537,"calcium":13},{"productName":"朱古力新地","nutritionDescription":null,"energyKj":1178,"energyKcal":282,"protein":5,"fat":9,"carbohydrate":44,"sodium":126,"calcium":182},{"productName":"草莓新地","nutritionDescription":null,"energyKj":1027,"energyKcal":245,"protein":4,"fat":6,"carbohydrate":43,"sodium":84,"calcium":158},{"productName":"奥利奥麦旋风","nutritionDescription":null,"energyKj":1115,"energyKcal":266,"protein":5,"fat":9,"carbohydrate":40,"sodium":116,"calcium":185},{"productName":"草莓麦旋风","nutritionDescription":null,"energyKj":1234,"energyKcal":295,"protein":6,"fat":9,"carbohydrate":47,"sodium":122,"calcium":186},{"productName":"香芋派","nutritionDescription":null,"energyKj":971,"energyKcal":232,"protein":2,"fat":12,"carbohydrate":28,"sodium":159,"calcium":7},{"productName":"菠萝派","nutritionDescription":null,"energyKj":925,"energyKcal":221,"protein":2,"fat":11,"carbohydrate":27,"sodium":147,"calcium":5},{"productName":"大脆鸡扒麦满分","nutritionDescription":null,"energyKj":1510,"energyKcal":361,"protein":16,"fat":17,"carbohydrate":35,"sodium":804,"calcium":130},{"productName":"原味板烧鸡腿麦满分","nutritionDescription":null,"energyKj":1029,"energyKcal":246,"protein":15,"fat":9,"carbohydrate":25,"sodium":611,"calcium":133},{"productName":"双层原味板烧鸡腿麦满分","nutritionDescription":null,"energyKj":1486,"energyKcal":355,"protein":23,"fat":17,"carbohydrate":27,"sodium":984,"calcium":138},{"productName":"吉士汉堡包","nutritionDescription":null,"energyKj":1231,"energyKcal":294,"protein":16,"fat":12,"carbohydrate":30,"sodium":673,"calcium":144},{"productName":"双层吉士汉堡","nutritionDescription":null,"energyKj":1796,"energyKcal":429,"protein":27,"fat":22,"carbohydrate":31,"sodium":1017,"calcium":232},{"productName":"麦香鸡","nutritionDescription":null,"energyKj":1546,"energyKcal":369,"protein":15,"fat":17,"carbohydrate":39,"sodium":731,"calcium":73},{"productName":"麦香鱼","nutritionDescription":null,"energyKj":1359,"energyKcal":325,"protein":16,"fat":13,"carbohydrate":35,"sodium":556,"calcium":99},{"productName":"麦辣鸡腿汉堡","nutritionDescription":null,"energyKj":2029,"energyKcal":485,"protein":24,"fat":24,"carbohydrate":42,"sodium":1208,"calcium":154},{"productName":"板烧鸡腿堡","nutritionDescription":null,"energyKj":1638,"energyKcal":391,"protein":23,"fat":17,"carbohydrate":35,"sodium":1041,"calcium":93},{"productName":"巨无霸","nutritionDescription":null,"energyKj":2146,"energyKcal":513,"protein":27,"fat":26,"carbohydrate":42,"sodium":961,"calcium":171},{"productName":"培根蔬萃双层牛堡","nutritionDescription":null,"energyKj":1850,"energyKcal":442,"protein":24,"fat":23,"carbohydrate":34,"sodium":728,"calcium":73},{"productName":"可乐中杯","nutritionDescription":null,"energyKj":616,"energyKcal":147,"protein":0,"fat":0,"carbohydrate":36,"sodium":0,"calcium":10},{"productName":"可乐大杯","nutritionDescription":null,"energyKj":936,"energyKcal":224,"protein":0,"fat":0,"carbohydrate":55,"sodium":0,"calcium":15},{"productName":"可乐小杯","nutritionDescription":null,"energyKj":446,"energyKcal":107,"protein":0,"fat":0,"carbohydrate":26,"sodium":0,"calcium":7},{"productName":"雪碧中杯","nutritionDescription":null,"energyKj":440,"energyKcal":105,"protein":0,"fat":0,"carbohydrate":26,"sodium":29,"calcium":0},{"productName":"雪碧大杯","nutritionDescription":null,"energyKj":669,"energyKcal":160,"protein":0,"fat":0,"carbohydrate":39,"sodium":45,"calcium":0},{"productName":"雪碧小杯","nutritionDescription":null,"energyKj":319,"energyKcal":76,"protein":0,"fat":0,"carbohydrate":19,"sodium":21,"calcium":0},{"productName":"无糖可口可乐中杯","nutritionDescription":null,"energyKj":0,"energyKcal":0,"protein":0,"fat":0,"carbohydrate":1,"sodium":35,"calcium":0},{"productName":"无糖可口可乐大杯","nutritionDescription":null,"energyKj":0,"energyKcal":0,"protein":0,"fat":0,"carbohydrate":1,"sodium":53,"calcium":0},{"productName":"无糖可口可乐小杯","nutritionDescription":null,"energyKj":0,"energyKcal":0,"protein":0,"fat":0,"carbohydrate":0,"sodium":25,"calcium":0},{"productName":"大杯鲜萃咖啡","nutritionDescription":null,"energyKj":54,"energyKcal":13,"protein":1,"fat":0,"carbohydrate":0,"sodium":3,"calcium":8},{"productName":"小杯鲜萃咖啡","nutritionDescription":null,"energyKj":63,"energyKcal":15,"protein":1,"fat":0,"carbohydrate":3,"sodium":2,"calcium":6},{"productName":"锡兰红茶","nutritionDescription":null,"energyKj":8,"energyKcal":2,"protein":0,"fat":0,"carbohydrate":0,"sodium":0,"calcium":5},{"productName":"热朱古力","nutritionDescription":null,"energyKj":525,"energyKcal":125,"protein":2,"fat":2,"carbohydrate":22,"sodium":107,"calcium":36},{"productName":"纯牛奶（盒装）","nutritionDescription":null,"energyKj":541,"energyKcal":129,"protein":7,"fat":7,"carbohydrate":10,"sodium":73,"calcium":231},{"productName":"麦旋酷阳光橙","nutritionDescription":null,"energyKj":955,"energyKcal":228,"protein":1,"fat":2,"carbohydrate":50,"sodium":77,"calcium":52},{"productName":"浓缩咖啡","nutritionDescription":null,"energyKj":54,"energyKcal":13,"protein":1,"fat":0,"carbohydrate":2,"sodium":0,"calcium":7},{"productName":"那么大鸡排","nutritionDescription":null,"energyKj":1612,"energyKcal":385,"protein":24,"fat":21,"carbohydrate":24,"sodium":996,"calcium":13},{"productName":"阳光柠檬红茶中杯","nutritionDescription":null,"energyKj":488,"energyKcal":117,"protein":0,"fat":0,"carbohydrate":29,"sodium":17,"calcium":0},{"productName":"阳光柠檬红茶大杯","nutritionDescription":null,"energyKj":743,"energyKcal":178,"protein":0,"fat":0,"carbohydrate":43,"sodium":25,"calcium":0},{"productName":"阳光柠檬红茶小杯","nutritionDescription":null,"energyKj":354,"energyKcal":85,"protein":0,"fat":0,"carbohydrate":21,"sodium":12,"calcium":0},{"productName":"脆薯饼","nutritionDescription":null,"energyKj":612,"energyKcal":146,"protein":1,"fat":9,"carbohydrate":14,"sodium":311,"calcium":7},{"productName":"脆香油条","nutritionDescription":null,"energyKj":844,"energyKcal":202,"protein":5,"fat":12,"carbohydrate":19,"sodium":230,"calcium":18},{"productName":"100%苹果汁","nutritionDescription":null,"energyKj":368,"energyKcal":88,"protein":0,"fat":0,"carbohydrate":21,"sodium":0,"calcium":0},{"productName":"汉堡包","nutritionDescription":null,"energyKj":1039,"energyKcal":248,"protein":13,"fat":8,"carbohydrate":29,"sodium":492,"calcium":61},{"productName":"麦乐鸡4块","nutritionDescription":null,"energyKj":712,"energyKcal":170,"protein":10,"fat":10,"carbohydrate":11,"sodium":337,"calcium":7},{"productName":"纯悦","nutritionDescription":"能量约清水1杯","energyKj":0,"energyKcal":0,"protein":0,"fat":0,"carbohydrate":0,"sodium":0,"calcium":0},{"productName":"苹果片","nutritionDescription":null,"energyKj":133,"energyKcal":32,"protein":0,"fat":0,"carbohydrate":7,"sodium":0,"calcium":18},{"productName":"不素之霸双层牛堡","nutritionDescription":null,"energyKj":2062,"energyKcal":493,"protein":28,"fat":27,"carbohydrate":34,"sodium":1012,"calcium":75},{"productName":"双层深海鳕鱼堡","nutritionDescription":null,"energyKj":2029,"energyKcal":485,"protein":28,"fat":21,"carbohydrate":46,"sodium":917,"calcium":147},{"productName":"儿童鱼排堡","nutritionDescription":null,"energyKj":1126,"energyKcal":269,"protein":15,"fat":6,"carbohydrate":36,"sodium":442,"calcium":58},{"productName":"培根安格斯厚牛堡","nutritionDescription":null,"energyKj":2959,"energyKcal":707,"protein":34,"fat":44,"carbohydrate":43,"sodium":1037,"calcium":161},{"productName":"芝士安格斯厚牛堡","nutritionDescription":"能量约鲈鱼1条","energyKj":2914,"energyKcal":696,"protein":32,"fat":44,"carbohydrate":43,"sodium":897,"calcium":150},{"productName":"yeyeyeye奶冻款","nutritionDescription":null,"energyKj":932,"energyKcal":223,"protein":1,"fat":4,"carbohydrate":43,"sodium":37,"calcium":64},{"productName":"皮蛋鸡肉粥","nutritionDescription":null,"energyKj":558,"energyKcal":133,"protein":6,"fat":3,"carbohydrate":20,"sodium":611,"calcium":20},{"productName":"雪菜脆笋鸡肉粥","nutritionDescription":null,"energyKj":504,"energyKcal":120,"protein":4,"fat":2,"carbohydrate":22,"sodium":552,"calcium":14},{"productName":"猪柳炒双蛋堡","nutritionDescription":null,"energyKj":1827,"energyKcal":437,"protein":25,"fat":24,"carbohydrate":29,"sodium":705,"calcium":116},{"productName":"yeyeyeye爆珠款","nutritionDescription":null,"energyKj":889,"energyKcal":212,"protein":1,"fat":3,"carbohydrate":42,"sodium":122,"calcium":124},{"productName":"柠檬拉明顿","nutritionDescription":"能量约猕猴桃2个","energyKj":506,"energyKcal":121,"protein":2,"fat":7,"carbohydrate":12,"sodium":35,"calcium":17},{"productName":"芝士双层安格斯厚牛堡","nutritionDescription":null,"energyKj":4195,"energyKcal":1003,"protein":58,"fat":65,"carbohydrate":46,"sodium":1373,"calcium":251},{"productName":"培根双层安格斯厚牛堡","nutritionDescription":null,"energyKj":4128,"energyKcal":987,"protein":55,"fat":64,"carbohydrate":46,"sodium":1191,"calcium":226},{"productName":"火腿扒早安营养卷","nutritionDescription":null,"energyKj":1857,"energyKcal":444,"protein":16,"fat":24,"carbohydrate":39,"sodium":1065,"calcium":108},{"productName":"麦麦脆汁鸡-琵琶腿","nutritionDescription":null,"energyKj":1372,"energyKcal":328,"protein":21,"fat":20,"carbohydrate":16,"sodium":905,"calcium":24},{"productName":"德式图林根香肠","nutritionDescription":null,"energyKj":366,"energyKcal":87,"protein":5,"fat":6,"carbohydrate":2,"sodium":293,"calcium":5},{"productName":"图林根香肠早安营养卷","nutritionDescription":null,"energyKj":1779,"energyKcal":425,"protein":14,"fat":23,"carbohydrate":38,"sodium":977,"calcium":68},{"productName":"麦麦脆汁鸡-带骨里脊","nutritionDescription":null,"energyKj":1389,"energyKcal":332,"protein":22,"fat":18,"carbohydrate":16,"sodium":812,"calcium":25},{"productName":"【美汁源】“黄金橙橙”","nutritionDescription":null,"energyKj":691,"energyKcal":165,"protein":0,"fat":0,"carbohydrate":41,"sodium":53,"calcium":0},{"productName":"优品豆浆大杯","nutritionDescription":null,"energyKj":844,"energyKcal":202,"protein":8,"fat":4,"carbohydrate":33,"sodium":43,"calcium":21},{"productName":"优品豆浆小杯","nutritionDescription":null,"energyKj":633,"energyKcal":151,"protein":6,"fat":3,"carbohydrate":25,"sodium":32,"calcium":15},{"productName":"浓浓黑巧雪冰中杯","nutritionDescription":null,"energyKj":1501,"energyKcal":359,"protein":8,"fat":12,"carbohydrate":51,"sodium":224,"calcium":207},{"productName":"浓浓黑巧雪冰大杯","nutritionDescription":null,"energyKj":1857,"energyKcal":444,"protein":11,"fat":14,"carbohydrate":65,"sodium":258,"calcium":251},{"productName":"特浓奶香雪冰中杯","nutritionDescription":null,"energyKj":1124,"energyKcal":269,"protein":6,"fat":11,"carbohydrate":36,"sodium":180,"calcium":188},{"productName":"特浓奶香雪冰大杯","nutritionDescription":null,"energyKj":1291,"energyKcal":309,"protein":7,"fat":12,"carbohydrate":42,"sodium":192,"calcium":223},{"productName":"浓浓抹茶雪冰中杯","nutritionDescription":null,"energyKj":1208,"energyKcal":289,"protein":7,"fat":11,"carbohydrate":39,"sodium":181,"calcium":220},{"productName":"浓浓抹茶雪冰大杯","nutritionDescription":null,"energyKj":1418,"energyKcal":339,"protein":8,"fat":12,"carbohydrate":48,"sodium":194,"calcium":270},{"productName":"热牛奶中杯","nutritionDescription":null,"energyKj":738,"energyKcal":176,"protein":10,"fat":8,"carbohydrate":15,"sodium":101,"calcium":319},{"productName":"热牛奶大杯","nutritionDescription":null,"energyKj":1006,"energyKcal":240,"protein":13,"fat":11,"carbohydrate":21,"sodium":137,"calcium":435},{"productName":"热牛奶小杯","nutritionDescription":null,"energyKj":617,"energyKcal":147,"protein":8,"fat":7,"carbohydrate":13,"sodium":84,"calcium":267},{"productName":"冰牛奶中杯","nutritionDescription":null,"energyKj":939,"energyKcal":224,"protein":13,"fat":11,"carbohydrate":19,"sodium":128,"calcium":406},{"productName":"冰牛奶大杯","nutritionDescription":null,"energyKj":1127,"energyKcal":269,"protein":15,"fat":13,"carbohydrate":23,"sodium":154,"calcium":487},{"productName":"冰牛奶小杯","nutritionDescription":null,"energyKj":617,"energyKcal":147,"protein":8,"fat":7,"carbohydrate":13,"sodium":84,"calcium":267},{"productName":"冰奶铁中杯","nutritionDescription":null,"energyKj":618,"energyKcal":148,"protein":8,"fat":7,"carbohydrate":13,"sodium":77,"calcium":251},{"productName":"冰奶铁大杯","nutritionDescription":null,"energyKj":678,"energyKcal":162,"protein":9,"fat":7,"carbohydrate":15,"sodium":85,"calcium":275},{"productName":"冰奶铁小杯","nutritionDescription":null,"energyKj":358,"energyKcal":86,"protein":5,"fat":4,"carbohydrate":8,"sodium":44,"calcium":144},{"productName":"热奶铁中杯","nutritionDescription":null,"energyKj":779,"energyKcal":186,"protein":11,"fat":8,"carbohydrate":17,"sodium":99,"calcium":320},{"productName":"热奶铁大杯","nutritionDescription":null,"energyKj":1040,"energyKcal":249,"protein":14,"fat":11,"carbohydrate":22,"sodium":134,"calcium":431},{"productName":"热奶铁小杯","nutritionDescription":null,"energyKj":559,"energyKcal":134,"protein":8,"fat":6,"carbohydrate":12,"sodium":72,"calcium":231},{"productName":"冰燕麦奶铁中杯","nutritionDescription":null,"energyKj":554,"energyKcal":132,"protein":3,"fat":5,"carbohydrate":17,"sodium":87,"calcium":270},{"productName":"冰燕麦奶铁大杯","nutritionDescription":null,"energyKj":608,"energyKcal":145,"protein":4,"fat":5,"carbohydrate":19,"sodium":96,"calcium":296},{"productName":"冰燕麦奶铁小杯","nutritionDescription":null,"energyKj":322,"energyKcal":77,"protein":2,"fat":3,"carbohydrate":10,"sodium":50,"calcium":155},{"productName":"热燕麦奶铁中杯","nutritionDescription":null,"energyKj":697,"energyKcal":167,"protein":4,"fat":6,"carbohydrate":22,"sodium":112,"calcium":345},{"productName":"热燕麦奶铁大杯","nutritionDescription":null,"energyKj":929,"energyKcal":222,"protein":5,"fat":8,"carbohydrate":29,"sodium":152,"calcium":464},{"productName":"热燕麦奶铁小杯","nutritionDescription":null,"energyKj":500,"energyKcal":120,"protein":3,"fat":5,"carbohydrate":16,"sodium":81,"calcium":248},{"productName":"冰美式中杯","nutritionDescription":null,"energyKj":54,"energyKcal":13,"protein":1,"fat":0,"carbohydrate":2,"sodium":0,"calcium":7},{"productName":"冰美式大杯","nutritionDescription":null,"energyKj":60,"energyKcal":14,"protein":1,"fat":0,"carbohydrate":2,"sodium":0,"calcium":8},{"productName":"冰美式小杯","nutritionDescription":null,"energyKj":41,"energyKcal":10,"protein":1,"fat":0,"carbohydrate":1,"sodium":0,"calcium":6},{"productName":"热美式中杯","nutritionDescription":null,"energyKj":54,"energyKcal":13,"protein":1,"fat":0,"carbohydrate":2,"sodium":0,"calcium":7},{"productName":"热美式大杯","nutritionDescription":null,"energyKj":60,"energyKcal":14,"protein":1,"fat":0,"carbohydrate":2,"sodium":0,"calcium":8},{"productName":"热美式小杯","nutritionDescription":null,"energyKj":41,"energyKcal":10,"protein":1,"fat":0,"carbohydrate":1,"sodium":0,"calcium":6},{"productName":"冰焦糖玛奇朵","nutritionDescription":null,"energyKj":618,"energyKcal":148,"protein":8,"fat":7,"carbohydrate":13,"sodium":77,"calcium":251},{"productName":"热焦糖玛奇朵","nutritionDescription":null,"energyKj":698,"energyKcal":167,"protein":9,"fat":7,"carbohydrate":15,"sodium":88,"calcium":284},{"productName":"卡布奇诺中杯","nutritionDescription":null,"energyKj":698,"energyKcal":167,"protein":9,"fat":7,"carbohydrate":15,"sodium":88,"calcium":285},{"productName":"卡布奇诺大杯","nutritionDescription":null,"energyKj":932,"energyKcal":223,"protein":13,"fat":10,"carbohydrate":20,"sodium":120,"calcium":385},{"productName":"冰浓浓燕麦黑巧中杯","nutritionDescription":null,"energyKj":500,"energyKcal":120,"protein":2,"fat":5,"carbohydrate":16,"sodium":87,"calcium":263},{"productName":"冰浓浓燕麦黑巧大杯","nutritionDescription":null,"energyKj":547,"energyKcal":131,"protein":3,"fat":5,"carbohydrate":17,"sodium":95,"calcium":388},{"productName":"冰燕麦奶中杯","nutritionDescription":null,"energyKj":833,"energyKcal":199,"protein":4,"fat":8,"carbohydrate":26,"sodium":145,"calcium":438},{"productName":"冰燕麦奶大杯","nutritionDescription":null,"energyKj":1000,"energyKcal":239,"protein":5,"fat":9,"carbohydrate":32,"sodium":174,"calcium":525},{"productName":"冰燕麦奶小杯","nutritionDescription":null,"energyKj":547,"energyKcal":131,"protein":3,"fat":5,"carbohydrate":17,"sodium":95,"calcium":288},{"productName":"热燕麦奶中杯","nutritionDescription":null,"energyKj":655,"energyKcal":157,"protein":3,"fat":6,"carbohydrate":21,"sodium":114,"calcium":344},{"productName":"热燕麦奶大杯","nutritionDescription":null,"energyKj":893,"energyKcal":213,"protein":4,"fat":8,"carbohydrate":28,"sodium":156,"calcium":469},{"productName":"热燕麦奶小杯","nutritionDescription":null,"energyKj":547,"energyKcal":131,"protein":3,"fat":5,"carbohydrate":17,"sodium":95,"calcium":288},{"productName":"冰浓浓抹茶牛奶中杯","nutritionDescription":null,"energyKj":821,"energyKcal":196,"protein":8,"fat":6,"carbohydrate":25,"sodium":80,"calcium":275},{"productName":"冰浓浓抹茶牛奶大杯","nutritionDescription":null,"energyKj":1004,"energyKcal":240,"protein":9,"fat":7,"carbohydrate":33,"sodium":89,"calcium":314},{"productName":"热浓浓抹茶牛奶中杯","nutritionDescription":null,"energyKj":996,"energyKcal":238,"protein":11,"fat":8,"carbohydrate":29,"sodium":104,"calcium":351},{"productName":"热浓浓抹茶牛奶大杯","nutritionDescription":null,"energyKj":1393,"energyKcal":333,"protein":14,"fat":12,"carbohydrate":41,"sodium":142,"calcium":482},{"productName":"冰浓浓黑巧中杯","nutritionDescription":null,"energyKj":563,"energyKcal":135,"protein":8,"fat":6,"carbohydrate":12,"sodium":77,"calcium":244},{"productName":"冰浓浓黑巧大杯","nutritionDescription":null,"energyKj":617,"energyKcal":147,"protein":8,"fat":7,"carbohydrate":13,"sodium":84,"calcium":267},{"productName":"热浓浓黑巧中杯","nutritionDescription":null,"energyKj":738,"energyKcal":176,"protein":10,"fat":8,"carbohydrate":15,"sodium":101,"calcium":319},{"productName":"热浓浓黑巧大杯","nutritionDescription":null,"energyKj":1006,"energyKcal":240,"protein":13,"fat":11,"carbohydrate":21,"sodium":137,"calcium":435},{"productName":"川宁伯爵红茶","nutritionDescription":null,"energyKj":7,"energyKcal":2,"protein":0,"fat":0,"carbohydrate":0,"sodium":0,"calcium":0},{"productName":"抹茶阿芙佳朵","nutritionDescription":null,"energyKj":613,"energyKcal":147,"protein":3,"fat":4,"carbohydrate":23,"sodium":50,"calcium":136},{"productName":"咖啡阿芙佳朵","nutritionDescription":null,"energyKj":583,"energyKcal":139,"protein":4,"fat":4,"carbohydrate":21,"sodium":49,"calcium":111},{"productName":"热浓浓燕麦黑巧中杯","nutritionDescription":null,"energyKj":655,"energyKcal":157,"protein":3,"fat":6,"carbohydrate":21,"sodium":114,"calcium":344},{"productName":"热浓浓燕麦黑巧大杯","nutritionDescription":null,"energyKj":893,"energyKcal":213,"protein":4,"fat":8,"carbohydrate":28,"sodium":156,"calcium":469},{"productName":"草莓拉明顿","nutritionDescription":null,"energyKj":507,"energyKcal":121,"protein":2,"fat":8,"carbohydrate":11,"sodium":34,"calcium":17},{"productName":"原味板烧鸡腿炒双蛋堡","nutritionDescription":null,"energyKj":1754,"energyKcal":419,"protein":27,"fat":21,"carbohydrate":30,"sodium":715,"calcium":116},{"productName":"双层猪柳蛋麦满分","nutritionDescription":null,"energyKj":2148,"energyKcal":513,"protein":29,"fat":32,"carbohydrate":26,"sodium":1210,"calcium":249},{"productName":"双层火腿扒麦满分","nutritionDescription":null,"energyKj":1611,"energyKcal":385,"protein":21,"fat":22,"carbohydrate":26,"sodium":979,"calcium":134},{"productName":"脆脆薯条","nutritionDescription":null,"energyKj":1168,"energyKcal":279,"protein":4,"fat":14,"carbohydrate":32,"sodium":540,"calcium":13},{"productName":"麦麦趣鸡球","nutritionDescription":null,"energyKj":1113,"energyKcal":266,"protein":17,"fat":13,"carbohydrate":19,"sodium":789,"calcium":13},{"productName":"酥酥多笋卷","nutritionDescription":null,"energyKj":1431,"energyKcal":342,"protein":14,"fat":15,"carbohydrate":36,"sodium":1044,"calcium":41},{"productName":"薄皮焦香V翅","nutritionDescription":null,"energyKj":804,"energyKcal":192,"protein":17,"fat":11,"carbohydrate":6,"sodium":594,"calcium":15},{"productName":"蜜汁BBQ风味薄皮脆汁鸡-带骨里脊","nutritionDescription":null,"energyKj":637,"energyKcal":152,"protein":20,"fat":5,"carbohydrate":6,"sodium":635,"calcium":28},{"productName":"蜜汁BBQ风味薄皮脆汁鸡-琵琶腿","nutritionDescription":null,"energyKj":724,"energyKcal":173,"protein":18,"fat":9,"carbohydrate":5,"sodium":547,"calcium":15},{"productName":"果然多肉","nutritionDescription":null,"energyKj":2001,"energyKcal":478,"protein":36,"fat":17,"carbohydrate":44,"sodium":1343,"calcium":190},{"productName":"“苹板”支撑Pro","nutritionDescription":null,"energyKj":1993,"energyKcal":476,"protein":25,"fat":18,"carbohydrate":50,"sodium":1077,"calcium":117},{"productName":"专“薯鱼”你","nutritionDescription":null,"energyKj":1936,"energyKcal":463,"protein":18,"fat":17,"carbohydrate":57,"sodium":652,"calcium":123},{"productName":"绝代双翅","nutritionDescription":null,"energyKj":1964,"energyKcal":469,"protein":32,"fat":27,"carbohydrate":23,"sodium":1167,"calcium":34},{"productName":"牛气满满","nutritionDescription":null,"energyKj":2073,"energyKcal":495,"protein":26,"fat":24,"carbohydrate":42,"sodium":764,"calcium":79},{"productName":"蜜汁快乐","nutritionDescription":null,"energyKj":1081,"energyKcal":258,"protein":22,"fat":9,"carbohydrate":20,"sodium":721,"calcium":34},{"productName":"迷你朱古力新地","nutritionDescription":null,"energyKj":586,"energyKcal":140,"protein":3,"fat":4,"carbohydrate":22,"sodium":63,"calcium":90},{"productName":"迷你草莓新地","nutritionDescription":null,"energyKj":511,"energyKcal":122,"protein":2,"fat":3,"carbohydrate":21,"sodium":42,"calcium":78},{"productName":"鲜蔬蛋沙拉叠叠卷","nutritionDescription":null,"energyKj":1114,"energyKcal":266,"protein":11,"fat":14,"carbohydrate":24,"sodium":518,"calcium":62},{"productName":"鸡肉蛋沙拉叠叠卷","nutritionDescription":null,"energyKj":1621,"energyKcal":387,"protein":17,"fat":21,"carbohydrate":31,"sodium":842,"calcium":67},{"productName":"中杯怡泉+C","nutritionDescription":null,"energyKj":461,"energyKcal":110,"protein":0,"fat":0,"carbohydrate":27,"sodium":0,"calcium":0},{"productName":"大杯怡泉+C","nutritionDescription":null,"energyKj":701,"energyKcal":168,"protein":0,"fat":0,"carbohydrate":41,"sodium":0,"calcium":0},{"productName":"蒜了吧黄油风味薄皮脆汁鸡-琵琶腿","nutritionDescription":null,"energyKj":688,"energyKcal":164,"protein":19,"fat":6,"carbohydrate":6,"sodium":867,"calcium":9},{"productName":"蒜了吧黄油风味薄皮脆汁鸡-带骨里脊","nutritionDescription":null,"energyKj":526,"energyKcal":126,"protein":19,"fat":2,"carbohydrate":4,"sodium":750,"calcium":59},{"productName":"柠萌风味薄皮焦香V翅","nutritionDescription":null,"energyKj":855,"energyKcal":204,"protein":18,"fat":11,"carbohydrate":6,"sodium":768,"calcium":22}],"built_at":"2026-10-11T23:24:52+08:00"};
 
 /* 单餐参考值（用于雷达图与逐项对照的正常化基线） */
 const REF = { energyKcal:600, protein:25, fat:25, carbohydrate:70, sodium:1000, calcium:300 };
@@ -707,7 +776,7 @@ function buildBody(girth){
 }
 
 /* 通用绘制：把宠物画到任意 ctx（主画布 / 养成卡共用） */
-function paintPet(g, cx, cy, cell, girth, mood, t){
+function paintPet(g, cx, cy, cell, girth, mood, t, chew){
   const breathe = (mood === 'sleepy' || mood === 'hungry') ? 0 : Math.round(Math.sin(t/620));
   const box = 20 * cell;
 
@@ -732,8 +801,9 @@ function paintPet(g, cx, cy, cell, girth, mood, t){
     [[5,18],[6,18],[13,18],[14,18]].forEach(([x,y]) => px(x,y,PAL.d));
   }
 
-  const eyeKind   = { happy:'happy', sleepy:'closed', fat:'closed', thirsty:'wide', hungry:'sad', peckish:'open' }[mood] || 'open';
-  const mouthKind = { happy:'open', sleepy:'flat', fat:'wavy', thirsty:'open', hungry:'frown', peckish:'flat' }[mood] || 'smile';
+  /* 正在投喂时张嘴咀嚼：嘴在「张开/合上」之间切换，眼睛笑成 ^ ^ */
+  const eyeKind   = chew ? 'happy' : ({ happy:'happy', sleepy:'closed', fat:'closed', thirsty:'wide', hungry:'sad', peckish:'open' }[mood] || 'open');
+  const mouthKind = chew ? (Math.floor(t/95) % 2 ? 'open' : 'flat') : ({ happy:'open', sleepy:'flat', fat:'wavy', thirsty:'open', hungry:'frown', peckish:'flat' }[mood] || 'smile');
 
   ['L','R'].forEach(side => {
     const ox = side === 'L' ? 6 : 13;
@@ -940,6 +1010,156 @@ function filtered(){
   return list;
 }
 
+/* =========================================================
+   卡通食物图标 —— 按麦当劳产品大致外观手绘（内联 SVG，零请求）
+   21 类覆盖全部 158 条餐品，避免"只看到名字不知道是什么"
+   ========================================================= */
+const ICONS = {
+burger:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M6.5 19c0-7.6 5.8-11.6 13.5-11.6S33.5 11.4 33.5 19z" fill="#F0B95C" stroke="#D08A2E" stroke-width="1.3" stroke-linejoin="round"/>
+<circle cx="14" cy="12.6" r="1.05" fill="#FFF3D2"/><circle cx="20" cy="10.8" r="1.05" fill="#FFF3D2"/><circle cx="26" cy="12.6" r="1.05" fill="#FFF3D2"/>
+<rect x="5.5" y="18.4" width="29" height="4.2" rx="2.1" fill="#6FBF4A"/>
+<rect x="6" y="21.6" width="28" height="4.6" rx="2" fill="#F5C542"/>
+<rect x="6.5" y="25.2" width="27" height="5.6" rx="2.8" fill="#7A4A2B"/>
+<rect x="7.5" y="30.2" width="25" height="5" rx="2.5" fill="#E8A33D" stroke="#D08A2E" stroke-width="1"/></svg>`,
+muffin:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<rect x="6" y="8.5" width="28" height="8.5" rx="4.25" fill="#EFD3A0" stroke="#C99B52" stroke-width="1.2"/>
+<rect x="6" y="16.4" width="28" height="5" rx="2" fill="#8A5A33"/>
+<rect x="5" y="20.4" width="30" height="4.4" rx="2" fill="#F5C542"/>
+<rect x="6" y="24.2" width="28" height="8.5" rx="4.25" fill="#E4BE7E" stroke="#C99B52" stroke-width="1.2"/></svg>`,
+wrap:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<rect x="6" y="14.5" width="25" height="13" rx="6.5" fill="#F2D9A8" stroke="#CFA967" stroke-width="1.2"/>
+<ellipse cx="31" cy="21" rx="4" ry="6.5" fill="#E7C98F" stroke="#CFA967" stroke-width="1.2"/>
+<ellipse cx="31" cy="21" rx="2.3" ry="4.4" fill="#6FBF4A"/>
+<ellipse cx="30.4" cy="21" rx="1.2" ry="2.6" fill="#C4622F"/>
+<path d="M11 18h8M11 21.5h6M11 25h8" stroke="#DCBB84" stroke-width="1.1" stroke-linecap="round" fill="none"/></svg>`,
+fries:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<rect x="13" y="7" width="3.4" height="18" rx="1.6" fill="#FFC72C" stroke="#E0A81E" stroke-width="1"/>
+<rect x="17.4" y="4.5" width="3.4" height="20.5" rx="1.6" fill="#FFD84D" stroke="#E0A81E" stroke-width="1"/>
+<rect x="21.8" y="6.5" width="3.4" height="18.5" rx="1.6" fill="#FFC72C" stroke="#E0A81E" stroke-width="1"/>
+<rect x="26" y="8.5" width="3.4" height="16.5" rx="1.6" fill="#FFD84D" stroke="#E0A81E" stroke-width="1"/>
+<path d="M8.5 18.5h23l-2.3 15.2a3 3 0 0 1-3 2.6H13.8a3 3 0 0 1-3-2.6z" fill="#DA291C" stroke="#B01F16" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M9.6 22.6h20.8" stroke="#FFF0C9" stroke-width="2" fill="none"/></svg>`,
+nuggets:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="13.5" cy="16" rx="5.4" ry="4.4" fill="#F0B95C" stroke="#CE8C2A" stroke-width="1.1"/>
+<ellipse cx="20" cy="12.6" rx="5.4" ry="4.4" fill="#F5C542" stroke="#CE8C2A" stroke-width="1.1"/>
+<ellipse cx="26.6" cy="16" rx="5.4" ry="4.4" fill="#F0B95C" stroke="#CE8C2A" stroke-width="1.1"/>
+<path d="M8 20.5h24l-2.4 14.2a3 3 0 0 1-3 2.6H13.4a3 3 0 0 1-3-2.6z" fill="#DA291C" stroke="#B01F16" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M9.4 24.7h21.2" stroke="#FFF0C9" stroke-width="2" fill="none"/></svg>`,
+chicken:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M23.5 21.5l6 8" stroke="#F7E7C8" stroke-width="4.6" stroke-linecap="round" fill="none"/>
+<circle cx="31.5" cy="31.5" r="4.8" fill="#F7E7C8" stroke="#DCC9A6" stroke-width="1.1"/>
+<ellipse cx="16" cy="16.5" rx="10" ry="9.2" fill="#D9902F" stroke="#B4721F" stroke-width="1.2"/>
+<ellipse cx="13" cy="13.4" rx="4.4" ry="3.2" fill="#EBB668" opacity=".75"/>
+<circle cx="19" cy="20" r="1" fill="#B4721F" opacity=".5"/><circle cx="11" cy="19" r="1" fill="#B4721F" opacity=".5"/></svg>`,
+cone:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M13 17h14l-6.2 17.4a1 1 0 0 1-1.6 0z" fill="#E7C48D" stroke="#C9A467" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M13.9 20.8h11.2M15.4 25.2h8.2M16.9 29.6h5.2" stroke="#D3B37C" stroke-width="1" fill="none"/>
+<path d="M12 17c0-3.4 2-5 4.4-5 0-2.8 1.7-4.4 3.6-4.4s3.6 1.6 3.6 4.4c2.4 0 4.4 1.6 4.4 5z" fill="#FFF6E5" stroke="#E3D3B8" stroke-width="1.2" stroke-linejoin="round"/></svg>`,
+sundae:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M10 16h20l-2.2 16.4a2.6 2.6 0 0 1-2.6 2.2H14.8a2.6 2.6 0 0 1-2.6-2.2z" fill="#FFFFFF" stroke="#D9CDBB" stroke-width="1.3" stroke-linejoin="round"/>
+<ellipse cx="20" cy="16" rx="10.2" ry="4" fill="#8A5A33"/>
+<circle cx="15.6" cy="12.4" r="4.6" fill="#8A5A33"/><circle cx="23.4" cy="11.6" r="5.2" fill="#7A4A2B"/>
+<circle cx="19.8" cy="7.6" r="4" fill="#8A5A33"/><circle cx="20" cy="4.6" r="2.1" fill="#7A4A2B"/></svg>`,
+pie:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 8.5 33 29.5c.8 1.3-.2 3-1.7 3H8.7c-1.5 0-2.5-1.7-1.7-3z" fill="#F0C070" stroke="#CE9A4A" stroke-width="1.3" stroke-linejoin="round"/>
+<path d="M11 29.4h18M15.5 20h4M21.5 20h3.4" stroke="#CE9A4A" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>`,
+coldcup:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M10.5 14.5h19l-2.1 20a2.8 2.8 0 0 1-2.8 2.5h-9.2a2.8 2.8 0 0 1-2.8-2.5z" fill="#FFFFFF" stroke="#D9CDBB" stroke-width="1.3" stroke-linejoin="round"/>
+<rect x="21.5" y="3" width="3.2" height="10" rx="1.6" fill="#DA291C" transform="rotate(14 23 8)"/>
+<rect x="9.5" y="10" width="21" height="5" rx="2.2" fill="#DA291C"/>
+<path d="M12.4 20.6h15.2l-.7 7.4H13.1z" fill="#DA291C" opacity=".88"/></svg>`,
+hotcup:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 15.5h16l-1.7 16.6a2.6 2.6 0 0 1-2.6 2.3h-7.4a2.6 2.6 0 0 1-2.6-2.3z" fill="#FFFFFF" stroke="#D9CDBB" stroke-width="1.3" stroke-linejoin="round"/>
+<rect x="11" y="10.5" width="18" height="5.2" rx="2.2" fill="#6B4A2F"/>
+<rect x="12.6" y="19" width="14.8" height="8.4" rx="1.6" fill="#B07A46"/>
+<path d="M15.5 23.2h9" stroke="#8A5A33" stroke-width="1.1" fill="none"/></svg>`,
+tea:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="20" cy="32.8" rx="13.5" ry="3.4" fill="#EADFCC"/>
+<path d="M10 15.5h20l-2.4 12.4a6.2 6.2 0 0 1-6.1 5h-3a6.2 6.2 0 0 1-6.1-5z" fill="#FFFDF8" stroke="#CFBEA3" stroke-width="1.3" stroke-linejoin="round"/>
+<path d="M30 18.5c4 0 5.4 4.4 1 6.4" fill="none" stroke="#CFBEA3" stroke-width="1.3"/>
+<ellipse cx="20" cy="15.5" rx="10" ry="2.6" fill="#B0703A"/>
+<path d="M17.5 10c1.4-2.2-1.2-3.4.2-5.6M22.5 10c1.4-2.2-1.2-3.4.2-5.6" fill="none" stroke="#D8CBB6" stroke-width="1.2" stroke-linecap="round"/></svg>`,
+icecup:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M11 18.5h18l-1.9 15.6a2.6 2.6 0 0 1-2.6 2.3h-9a2.6 2.6 0 0 1-2.6-2.3z" fill="#FFFFFF" stroke="#D9CDBB" stroke-width="1.3" stroke-linejoin="round"/>
+<path d="M10 18.5c0-6.1 4.5-10.5 10-10.5s10 4.4 10 10.5z" fill="#EAF3F9" stroke="#CFDCE6" stroke-width="1.2" stroke-linejoin="round"/>
+<rect x="16.5" y="5" width="7" height="3" rx="1.5" fill="#7FC3E8"/>
+<path d="M12.5 24.5h15l-.6 5.4H13.1z" fill="#8A5A33" opacity=".85"/></svg>`,
+corn:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M11 16.5h18l-1.8 17a2.6 2.6 0 0 1-2.6 2.2h-9.2a2.6 2.6 0 0 1-2.6-2.2z" fill="#FFFFFF" stroke="#D9CDBB" stroke-width="1.3" stroke-linejoin="round"/>
+<ellipse cx="20" cy="16.5" rx="9.2" ry="3.6" fill="#E8B23A"/>
+<circle cx="15.4" cy="13" r="2.6" fill="#FFD84D"/><circle cx="20" cy="11" r="2.8" fill="#FFC72C"/>
+<circle cx="24.6" cy="13" r="2.6" fill="#FFD84D"/><circle cx="17.7" cy="9.4" r="2.2" fill="#FFC72C"/>
+<circle cx="22.3" cy="9.4" r="2.2" fill="#FFD84D"/></svg>`,
+hashbrown:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="20" cy="21" rx="13.5" ry="10.2" fill="#E8A33D" stroke="#C4822A" stroke-width="1.3"/>
+<ellipse cx="20" cy="21" rx="10.2" ry="7.4" fill="#F0B95C"/>
+<circle cx="15" cy="18" r="1.1" fill="#D08A2E"/><circle cx="24" cy="20" r="1" fill="#D08A2E"/>
+<circle cx="19" cy="24" r="1" fill="#D08A2E"/><circle cx="26" cy="25" r=".9" fill="#D08A2E"/></svg>`,
+youtiao:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<rect x="4" y="14.5" width="32" height="11" rx="5.5" fill="#E8A33D" stroke="#C4822A" stroke-width="1.3"/>
+<path d="M9 17.6h22" stroke="#F7D08A" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+<path d="M9 22.6h22" stroke="#C4822A" stroke-width="1.2" stroke-linecap="round" fill="none"/></svg>`,
+apple:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 12.6c-2.4-2-6.4-2.2-9.2.6-3.6 3.6-3 10.6.6 15 2 2.4 4.6 4 7 3.2 1.2-.4 2-.9 2.6-.9s1.4.5 2.6.9c2.4.8 5-.8 7-3.2 3.6-4.4 4.2-11.4.6-15-2.8-2.8-6.8-2.6-9.2-.6z" fill="#E8554E" stroke="#C63C36" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M20 12.6V8" stroke="#8A5A33" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+<path d="M20 9.4c1.6-3 4.6-3.6 7-3-1 3-3.6 4.4-7 3z" fill="#6FBF4A" stroke="#4E9A32" stroke-width="1" stroke-linejoin="round"/>
+<ellipse cx="14.4" cy="18.6" rx="2" ry="3" fill="#FFFFFF" opacity=".38"/></svg>`,
+congee:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="20" cy="32.6" rx="12.6" ry="2.8" fill="#EADFCC"/>
+<path d="M8.5 18.5h23c0 8.6-5.2 14-11.5 14S8.5 27.1 8.5 18.5z" fill="#FFFFFF" stroke="#D9CDBB" stroke-width="1.3" stroke-linejoin="round"/>
+<ellipse cx="20" cy="18.5" rx="11.5" ry="3.4" fill="#F2E6CE"/>
+<path d="M15.4 18.2c1-1.8 3-1.8 4 0M21 20c.9-1.5 2.5-1.5 3.4 0" stroke="#DCCBA6" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+<path d="M16.5 12c1.3-2-1-3-.3-4.6M23 12c1.3-2-1-3-.3-4.6" stroke="#D8CBB6" stroke-width="1.1" fill="none" stroke-linecap="round"/></svg>`,
+cake:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<rect x="9" y="15" width="22" height="17" rx="3.4" fill="#7A4A2B" stroke="#5E3620" stroke-width="1.2"/>
+<rect x="9" y="15" width="22" height="6" rx="3" fill="#9A6238"/>
+<circle cx="14" cy="24" r="1.5" fill="#F7EBD4"/><circle cx="20" cy="26.5" r="1.5" fill="#F7EBD4"/>
+<circle cx="26" cy="23" r="1.5" fill="#F7EBD4"/><circle cx="17" cy="29" r="1.4" fill="#F7EBD4"/>
+<circle cx="23.5" cy="29.5" r="1.4" fill="#F7EBD4"/></svg>`,
+bottle:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<rect x="14.5" y="6" width="11" height="4.6" rx="2" fill="#7FC3E8"/>
+<path d="M15 11h10v21a3.4 3.4 0 0 1-3.4 3.4h-3.2A3.4 3.4 0 0 1 15 32z" fill="#E3F2FA" stroke="#9CC7DD" stroke-width="1.2"/>
+<rect x="16.4" y="19" width="7.2" height="8" rx="1.4" fill="#BFE0F0"/>
+<path d="M17.6 22.6h4.8M20 21.2v5" stroke="#FFFFFF" stroke-width="1.1" fill="none"/></svg>`,
+milk:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M13 13.5 20 8.5l7 5V33a1.6 1.6 0 0 1-1.6 1.6H14.6A1.6 1.6 0 0 1 13 33z" fill="#FFFFFF" stroke="#CFC3B0" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M13 13.5h14M20 8.5v5" stroke="#CFC3B0" stroke-width="1.2" fill="none"/>
+<rect x="15.4" y="19" width="9.2" height="9" rx="1.6" fill="#8FCBE8"/>
+<path d="M17 23.5h6" stroke="#FFFFFF" stroke-width="1.2" fill="none"/></svg>`,
+sausage:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<rect x="6" y="14.5" width="28" height="11" rx="5.5" fill="#B4552B" stroke="#8A3F1E" stroke-width="1.2" transform="rotate(-9 20 20)"/>
+<path d="M13 15.6l3 8M19 14.6l3 8M25 13.6l3 8" stroke="#8A3F1E" stroke-width="1.3" stroke-linecap="round" transform="rotate(-9 20 20)" fill="none"/></svg>`
+};
+
+/* 餐品名 → 图标类别（顺序：具体在前，兜底在后） */
+function iconKeyOf(name){
+  const n = name || '';
+  if(/纯悦/.test(n)) return 'bottle';
+  if(/纯牛奶/.test(n)) return 'milk';
+  if(/粥/.test(n)) return 'congee';
+  if(/苹果片/.test(n)) return 'apple';
+  if(/油条/.test(n)) return 'youtiao';
+  if(/薯饼/.test(n)) return 'hashbrown';
+  if(/玉米杯/.test(n)) return 'corn';
+  if(/雪冰/.test(n)) return 'icecup';
+  if(/锡兰红茶|伯爵红茶|川宁/.test(n)) return 'tea';
+  if(/拉明顿|奶冻|爆珠/.test(n)) return 'cake';
+  if(/圆筒/.test(n)) return 'cone';
+  if(/新地|麦旋风|阿芙佳朵/.test(n)) return 'sundae';
+  if(/派/.test(n)) return 'pie';
+  if(/薯条/.test(n)) return 'fries';
+  if(/麦乐鸡|趣鸡球|鸡块/.test(n)) return 'nuggets';
+  if(/卷/.test(n)) return 'wrap';
+  if(/香肠/.test(n)) return 'sausage';
+  if(/鸡翅|V翅|鸡排|脆汁鸡|琵琶腿|里脊|绝代双翅|蜜汁快乐|果然多肉/.test(n)) return 'chicken';
+  if(/麦满分|炒双蛋堡/.test(n)) return 'muffin';
+  if(/可乐|雪碧|怡泉|柠檬红茶|黄金橙橙|阳光橙|苹果汁/.test(n)) return 'coldcup';
+  if(/咖啡|美式|玛奇朵|卡布奇诺|浓缩|奶铁|燕麦奶|黑巧|朱古力|抹茶牛奶|热牛|冰牛|豆浆/.test(n)) return 'hotcup';
+  return 'burger';
+}
+function foodIcon(name){ return ICONS[iconKeyOf(name)] || ICONS.burger; }
+
 function renderCats(){
   $('cats').innerHTML = CATS.map(c =>
     `<button class="cat ${UI.cat===c.n?'on':''}" data-c="${c.n}">${c.n}</button>`
@@ -955,8 +1175,10 @@ function renderGrid(){
   const picked = new Set(BASKET.map(i => i.productName));
   $('grid').innerHTML = shown.length ? shown.map(i => {
     const pct = Math.min(i.energyKcal/800, 1) * 100;
-    return `<button class="item ${picked.has(i.productName)?'picked':''}" data-n="${i.productName.replace(/"/g,'&quot;')}">
-      <span class="nm">${i.productName}</span>
+    const nm = i.productName.replace(/"/g,'&quot;');
+    return `<button class="item ${picked.has(i.productName)?'picked':''}" data-n="${nm}" title="${nm} · ${i.energyKcal} kcal">
+      <span class="ic">${foodIcon(i.productName)}</span>
+      <span class="col"><span class="nm">${i.productName}</span></span>
       <span class="kc"><span>${i.energyKcal} kcal</span><span>蛋白 ${i.protein}g</span></span>
       <span class="bar"><i style="width:${pct}%;background:${kcalColor(i.energyKcal)}"></i></span>
     </button>`;
@@ -976,7 +1198,7 @@ function renderBasket(){
     $('basket').innerHTML = `<div class="basketempty">还没选餐品 —— 想在点餐前先看看这顿怎么样？挑两样凑一顿试试。</div>`;
   } else {
     $('basket').innerHTML = BASKET.map((i,idx) =>
-      `<span class="bchip">${i.productName} <em>${i.energyKcal}kcal</em>
+      `<span class="bchip"><span class="icv">${foodIcon(i.productName)}</span>${i.productName} <em>${i.energyKcal}kcal</em>
         <button class="bx" data-i="${idx}" title="移除" aria-label="移除">×</button></span>`
     ).join('');
     $('basket').querySelectorAll('.bx').forEach(b => b.onclick = (e) => {
@@ -985,14 +1207,18 @@ function renderBasket(){
       renderBasket(); renderGrid(); renderAnalysis();
     });
   }
-  $('feedBtn').disabled = !BASKET.length;
+  $('feedBtn').disabled = !BASKET.length || CHEWING;
 }
 
 function renderKV(n){
   $('kv').innerHTML = FIELDS.map(f =>
     `<div><span>${f.label}</span><b>${Math.round(n[f.k]||0)}<i>${f.unit}</i></b></div>`
   ).join('');
-  $('nName').textContent = n.productName;
+  const ic = (BASKET.length > 1)
+    ? [...new Set(BASKET.map(i => iconKeyOf(i.productName)))].slice(0,3)
+        .map(k => `<span class="ni">${ICONS[k]}</span>`).join('')
+    : `<span class="ni">${foodIcon(n.productName)}</span>`;
+  $('nName').innerHTML = ic + n.productName;
 }
 
 function renderBars(n){
@@ -1439,34 +1665,79 @@ const IDLE_LINE = {
 const IDLE_LABEL = { wait:'待喂食', normal:'满足', peckish:'有点饿', hungry:'饿了' };
 let lastIdle = '';
 
+const FEED_FLY = 700;                                   // 单件餐品飞行时长(ms)
+const feedStep = n => n <= 4 ? 210 : Math.max(120, Math.round(840 / (n - 1)));
+
+function petGulp(){
+  const w = document.querySelector('.petwrap');
+  if(!w) return;
+  w.classList.remove('gulp');
+  void w.offsetWidth;
+  w.classList.add('gulp');
+  setTimeout(() => w.classList.remove('gulp'), 360);
+}
+
 function feed(){
   if(!BASKET.length){ toast('先选餐品加进「这一餐」'); return; }
+  if(CHEWING){ toast('它还在嚼呢，等一下～'); return; }
+
+  const items = BASKET.slice();          // 快照：投喂过程中再挑餐品也不影响这一顿
   const n = basketTotals();
   const { total } = healthScore(n);
   const st = petStateOf(n, total);
 
-  $('eatLayer').textContent = pickEmoji(BASKET[0].productName);
-  $('eatLayer').classList.remove('go');
-  void $('eatLayer').offsetWidth;
-  $('eatLayer').classList.add('go');
-
+  CHEWING = true;
+  $('feedBtn').disabled = true;
   $('bubble').classList.add('pop');
   setTimeout(()=> $('bubble').classList.remove('pop'), 200);
-  $('bubble').textContent = '嚼嚼嚼… ( ˘ω˘ )';
+  $('bubble').textContent = items.length > 1 ? '一份一份来… ( ˘ω˘ )' : '啊——呜！( ˘ω˘ )';
   $('petState').textContent = '正在吃';
-  CHEWING = true;
 
+  const layer = $('feedLayer');
+  layer.innerHTML = '';
+  const step = feedStep(items.length);
+
+  items.forEach((it, i) => {
+    const t0 = i * step;
+    /* ① 从下方抛入，弧线飞进嘴里，在嘴边缩小消失 */
+    setTimeout(() => {
+      const d = document.createElement('div');
+      d.className = 'flyitem';
+      d.style.setProperty('--ox', ((i % 2 ? 1 : -1) * (12 + (i % 3) * 7)) + 'px');
+      d.innerHTML = foodIcon(it.productName);
+      layer.appendChild(d);
+      void d.offsetWidth;
+      d.classList.add('go');
+      setTimeout(() => d.remove(), FEED_FLY + 140);
+    }, t0);
+    /* ② 到达嘴边：宠物咕咚咬一口，飘出这件的热量 */
+    setTimeout(() => {
+      petGulp();
+      const k = document.createElement('div');
+      k.className = 'flykcal';
+      k.textContent = '+' + it.energyKcal + ' kcal';
+      layer.appendChild(k);
+      void k.offsetWidth;
+      k.classList.add('go');
+      setTimeout(() => k.remove(), 1100);
+    }, t0 + Math.round(FEED_FLY * 0.62));
+  });
+
+  const totalMs = (items.length - 1) * step + FEED_FLY + 90;
   clearTimeout(eatTimer);
   eatTimer = setTimeout(() => {
     CHEWING = false;
-    commitMeal(n, total, st);
-  }, 620);
+    layer.innerHTML = '';
+    commitMeal(n, total, st, items);
+    $('feedBtn').disabled = !BASKET.length;
+  }, totalMs);
 }
 
-function commitMeal(n, total, st){
+function commitMeal(n, total, st, items){
   const d = todayKey(), now = Date.now();
+  const list = (items && items.length) ? items : BASKET.slice();
   /* 逐项记入历史（保证「尝鲜家 / 最常点」按单品统计） */
-  BASKET.forEach(i => {
+  list.forEach(i => {
     S.meals.push({ n:i.productName, d, k:i.energyKcal, p:i.protein, f:i.fat, c:i.carbohydrate, s:i.sodium, ca:i.calcium, sc:healthScore(i).total, ts:now });
   });
 
@@ -1496,25 +1767,14 @@ function commitMeal(n, total, st){
   renderAnalysis(); renderBasket(); renderGrid();
   renderMini(); renderToday(); renderGrowth();
 
-  const names = BASKET.map(i => i.productName).join(' + ');
+  const names = list.map(i => i.productName).join(' + ');
   toast(`麦麦吃了「${names}」 · 健康分 ${total}`);
   LAST = n;                           // 篮子清空后，营养面板继续展示刚喂的这一餐
-  BASKET = [];
+  BASKET = BASKET.filter(b => list.indexOf(b) < 0);   // 只移走被吃掉的项目
   renderBasket(); renderGrid();
   renderAnalysis();
 
   if(newly.length) setTimeout(() => toast(`🎖 解锁成就：${newly.map(a=>a.n).join('、')}`), 1900);
-}
-
-function pickEmoji(name){
-  if(/薯条|薯饼/.test(name)) return '🍟';
-  if(/可乐|雪碧|怡泉|纯悦/.test(name)) return '🥤';
-  if(/咖啡|美式|玛奇朵|卡布奇诺|奶铁|浓缩/.test(name)) return '☕';
-  if(/冰淇淋|新地|麦旋风|雪顶|雪冰|阿芙佳朵/.test(name)) return '🍦';
-  if(/粥|油条|蛋|麦满分/.test(name)) return '🍳';
-  if(/鸡块|鸡翅|鸡排|鸡球|V翅|里脊|琵琶腿|鸡扒/.test(name)) return '🍗';
-  if(/苹果|玉米|沙拉|蔬/.test(name)) return '🥗';
-  return '🍔';
 }
 
 /* ---------- 通用 ---------- */
@@ -1610,7 +1870,7 @@ addEventListener('keydown', e => {
     } else { lastIdle = ''; }
     ctx.clearRect(0,0,petCanvas.width,petCanvas.height);
     const lv = levelOf(S.meals.length);
-    paintPet(ctx, 100, 100, 10 * scaleForLevel(lv), anim.girth, mood, anim.t);
+    paintPet(ctx, 100, 100, 10 * scaleForLevel(lv), anim.girth, mood, anim.t, CHEWING);
     requestAnimationFrame(loop);
   })();
 })();

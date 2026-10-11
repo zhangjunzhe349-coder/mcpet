@@ -11,7 +11,7 @@
 [技术架构](#-技术架构) · [和同类比好在哪](#-和同类比好在哪) · [参赛声明](CONTEST_DECLARATION.md)
 
 ![零依赖](https://img.shields.io/badge/%E9%9B%B6%E4%BE%9D%E8%B5%96-%E5%8D%95%E6%96%87%E4%BB%B6%20HTML-FFC72C)
-![校验](https://img.shields.io/badge/%E6%97%A0%E5%A4%B4%E6%B5%8F%E8%A7%88%E5%99%A8%E6%96%AD%E8%A8%80-99%2F99%20%E9%80%9A%E8%BF%87-2E9E63)
+![校验](https://img.shields.io/badge/%E6%97%A0%E5%A4%B4%E6%B5%8F%E8%A7%88%E5%99%A8%E6%96%AD%E8%A8%80-111%2F111%20%E9%80%9A%E8%BF%87-2E9E63)
 ![双端](https://img.shields.io/badge/%E9%80%82%E9%85%8D-%E6%89%8B%E6%9C%BA%20%2B%20%E7%94%B5%E8%84%91%E5%8F%8C%E7%AB%AF-7BB662)
 ![数据](https://img.shields.io/badge/%E8%90%A5%E5%85%BB%E6%95%B0%E6%8D%AE-%E5%AE%98%E6%96%B9%20MCP%20158%20%E6%9D%A1-DA291C)
 ![License](https://img.shields.io/badge/License-MIT-6B5B47)
@@ -19,6 +19,7 @@
 <img src="assets/screenshot-desktop.png" alt="电脑版 · 左栏宠物常驻，右栏数据铺开" width="100%">
 
 <p>
+  <img src="assets/screenshot-feed.png" alt="投喂动画 · 餐品飞进宠物嘴里被吃掉" width="180">
   <img src="assets/screenshot-mobile.png" alt="手机版 · 底部 Tab 单手流" width="180">
   <img src="assets/screenshot-desktop-nutrition.png" alt="电脑版营养面板 · 卡片自动双列" width="180">
   <img src="assets/screenshot-desktop-growth.png" alt="电脑版成长面板" width="180">
@@ -60,8 +61,13 @@
   「最短板是蛋白质，加一份麦麦脆汁鸡（琵琶腿 21 g）就能明显补上」，
   或者「钠主要来自芝士双层安格斯厚牛堡，把它拿掉整餐立刻变清爽」。
 
-### 2️⃣ 情绪价值 —— 会变、会饿、有脾气
+### 2️⃣ 情绪价值 —— 会变、会饿、有脾气，还能"喂"进去
 
+- **看得懂的食物图标**：158 款餐品每一条都手绘了卡通图标，**照着麦当劳真实产品的外观画** ——
+  汉堡、薯条盒、鸡块盒、冷饮杯、热咖啡杯、圆筒冰淇淋、派……不用读名字就知道是什么。
+- **有"投喂感"的动画**：点了「喂给麦麦」之后，食物会**从下方抛进它嘴里** ——
+  沿弧线飞上去、在嘴边缩小消失，宠物同时张嘴咀嚼，每吃一口"咕咚"一下并飘出这份的热量。
+  多选时一件一件依次飞进去。**不是贴图切换，是真的看着它把你的东西吃掉。**
 - **累计养成**：喂得越多，麦麦从 🥚 蛋期一路长到 🌟 麦麦之星，共 10 个等级。
 - **体态会变**：这不是一张静态图片。它的**腰围由你最近 12 餐的热量与脂肪决定** ——
   天天高热量会肉眼可见地变圆润，吃得清爽就一直是匀称的。
@@ -222,7 +228,7 @@ cd mcpet
 # 从模板 + 数据集重新生成单文件页面
 python tools/build.py
 
-# 无头浏览器全量校验（渲染 / 交互 / 养成持久化 / 手机适配 / 桌面适配 / 截图）
+# 无头浏览器全量校验（渲染 / 食物图标 / 投喂动画 / 养成持久化 / 手机 + 桌面双端 / 截图）
 node tools/browser-check.js
 ```
 
@@ -248,7 +254,7 @@ mcpet/
 │   └── index.template.html     ← 页面源文件（含占位符）
 ├── tools/
 │   ├── build.py                ← 构建：模板 + 数据 → index.html
-│   └── browser-check.js        ← 无头浏览器全量校验（99 项断言，含桌面端）
+│   └── browser-check.js        ← 无头浏览器全量校验（111 项断言，含桌面端与投喂动画）
 └── assets/
     └── screenshot-*.png
 ```

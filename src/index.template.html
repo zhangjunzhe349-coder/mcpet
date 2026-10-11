@@ -53,8 +53,26 @@ body{
   background-image:radial-gradient(#EFD9A8 1px,transparent 1px);
   background-size:14px 14px;opacity:.55;pointer-events:none;
 }
-.petwrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px}
-#pet{image-rendering:pixelated;display:block;filter:drop-shadow(0 6px 0 rgba(58,42,22,.07))}
+/* ---------- 首屏钩子：一进来就知道这是什么 ---------- */
+.hook{
+  margin:12px 16px 2px;padding:15px 17px 16px;border-radius:20px;
+  background:#FFFFFF;border:1px solid #F2E2BE;
+  box-shadow:0 3px 0 rgba(255,199,44,.14);
+}
+.hook h1{margin:0;font-size:19px;line-height:1.36;letter-spacing:-.2px;color:#3A2A16}
+.hook h1 em{font-style:normal;color:#DA291C}
+.hook p{margin:8px 0 0;font-size:12.5px;line-height:1.72;color:#7A6A53}
+.hook p b{color:#3A2A16}
+.hook .steps{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.hook .steps span{
+  font-size:11.5px;color:#5B4A35;background:#FFFBF0;border:1px solid #EFDFC0;
+  border-radius:999px;padding:4px 10px 4px 5px;display:inline-flex;align-items:center;gap:6px;
+}
+.hook .steps i{
+  font-style:normal;width:16px;height:16px;border-radius:50%;background:#FFC72C;color:#3A2A16;
+  font-size:10px;font-weight:600;display:grid;place-items:center;flex:0 0 auto;
+}
+.petwrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px}#pet{image-rendering:pixelated;display:block;filter:drop-shadow(0 6px 0 rgba(58,42,22,.07))}
 .petname{font-size:13px;font-weight:600;letter-spacing:.3px}
 .petname span{font-weight:400;color:#9C8B76;font-size:11px;margin-left:6px}
 .bubble{
@@ -69,12 +87,30 @@ body{
   width:9px;height:9px;background:#FFFFFF;border-left:1px solid #EADCC4;border-top:1px solid #EADCC4;
   margin-bottom:-5px;
 }
-.eatlayer{position:absolute;left:50%;top:120px;transform:translateX(-50%);pointer-events:none;font-size:30px;opacity:0}
-.eatlayer.go{animation:eatfly .62s cubic-bezier(.4,0,.6,1) forwards}
-@keyframes eatfly{
-  0%{opacity:1;transform:translate(-50%,20px) scale(.6) rotate(-10deg)}
-  60%{opacity:1;transform:translate(-50%,-46px) scale(1.15) rotate(8deg)}
-  100%{opacity:0;transform:translate(-50%,-72px) scale(.8) rotate(-6deg)}
+/* ---------- 投喂：餐品从下方抛入、飞进宠物嘴里 ----------
+   坐标以 .petwrap 为基准：画布是第一子元素，宠物嘴在 y≈105px 处 */
+.feedlayer{position:absolute;inset:0;pointer-events:none;z-index:6}
+.flyitem{position:absolute;left:50%;top:108px;width:46px;height:46px;margin:-23px 0 0 -23px;opacity:0;filter:drop-shadow(0 3px 2px rgba(58,42,22,.2))}
+.flyitem svg{width:100%;height:100%;display:block}
+.flyitem.go{animation:feedarc .7s cubic-bezier(.34,.02,.3,1) forwards}
+@keyframes feedarc{
+  0%  {opacity:0;transform:translate(var(--ox,0px),96px) scale(.5) rotate(-22deg)}
+  16% {opacity:1}
+  44% {transform:translate(calc(var(--ox,0px)*.5),16px) scale(1.1) rotate(14deg)}
+  72% {opacity:1;transform:translate(0,4px) scale(.78) rotate(-4deg)}
+  100%{opacity:0;transform:translate(0,9px) scale(.05) rotate(6deg)}
+}
+.flykcal{position:absolute;left:50%;top:58px;font-size:12px;font-weight:600;color:#B32216;background:#FFF3D2;border:1px solid #F0DFA8;border-radius:999px;padding:2px 9px;white-space:nowrap;opacity:0;pointer-events:none}
+.flykcal.go{animation:kcalup 1s ease-out forwards}
+@keyframes kcalup{
+  0%  {opacity:0;transform:translate(-50%,0) scale(.7)}
+  22% {opacity:1;transform:translate(-50%,-6px) scale(1)}
+  100%{opacity:0;transform:translate(-50%,-52px) scale(.92)}
+}
+.petwrap.gulp #pet{animation:gulp .34s ease}
+@keyframes gulp{
+  0%,100%{transform:scale(1)}
+  45%{transform:scale(1.12,.88)}
 }
 .chips-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:2px}
 .tag{font-size:10.5px;padding:2px 8px;border-radius:999px;background:#FFFFFF;border:1px solid #EADCC4;color:#8A7B6B}
@@ -129,17 +165,35 @@ main{padding:0 16px}
 .cat.on{background:#3A2A16;color:#FFF3D2;border-color:#3A2A16}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:4px}
 .item{
-  text-align:left;border:1px solid #EADCC4;background:#FFFDF8;border-radius:14px;
-  padding:10px 11px;cursor:pointer;font-family:inherit;color:inherit;
+  display:flex;flex-wrap:wrap;align-items:center;column-gap:9px;row-gap:3px;text-align:left;
+  border:1px solid #EADCC4;background:#FFFDF8;border-radius:14px;
+  padding:9px 10px;cursor:pointer;font-family:inherit;color:inherit;
   transition:transform .12s ease,border-color .15s,box-shadow .15s;position:relative;overflow:hidden;
 }
 .item:active{transform:scale(.975)}
 .item:hover{border-color:#FFC72C;box-shadow:0 3px 0 rgba(255,199,44,.22)}
 .item.picked{border-color:#D99400;background:#FFFBEE;box-shadow:0 0 0 2px rgba(255,199,44,.35) inset}
-.item .nm{font-size:12.5px;font-weight:600;display:block;line-height:1.35;min-height:34px}
-.item .kc{font-size:11px;color:#9C8B76;margin-top:4px;display:flex;justify-content:space-between;align-items:center}
-.item .bar{height:3px;border-radius:2px;background:#F0E6D4;margin-top:6px;overflow:hidden}
+.item .ic{
+  flex:0 0 38px;width:38px;height:38px;border-radius:12px;
+  background:#FFF6E2;border:1px solid #F2E3C4;display:grid;place-items:center;
+}
+.item .ic svg{width:32px;height:32px;display:block}
+.item .col{flex:1;min-width:0}
+.item .nm{
+  font-size:12.5px;font-weight:600;line-height:1.32;display:-webkit-box;
+  -webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:32px;
+}
+.item .kc{
+  flex:1 0 100%;font-size:11px;color:#9C8B76;
+  display:flex;justify-content:space-between;align-items:center;gap:8px;white-space:nowrap;
+}
+.item .bar{flex:1 0 100%;height:3px;border-radius:2px;background:#F0E6D4;overflow:hidden}
 .item .bar i{display:block;height:100%;border-radius:2px}
+.item.picked .ic{background:#FFF0C9;border-color:#EBCF86}
+#nName{display:inline-flex;align-items:center;gap:5px;vertical-align:middle}
+#nName .ni{width:18px;height:18px;display:inline-block;vertical-align:middle;flex:0 0 auto}
+#nName .ni svg{width:18px;height:18px;display:block}
+#nName .ni + .ni{margin-left:-8px}
 .empty{text-align:center;padding:26px 10px;color:#9C8B76;font-size:12.5px}
 .morebtn{
   width:100%;margin-top:10px;border:1px dashed #DCCBB0;background:transparent;border-radius:12px;
@@ -151,7 +205,9 @@ main{padding:0 16px}
 .baskethead{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;font-weight:600}
 .baskethead small{font-weight:400;color:#9C8B76;font-size:11px}
 .bchips{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0 2px}
-.bchip{display:inline-flex;align-items:center;gap:6px;background:#FFFFFF;border:1px solid #F0DFA8;border-radius:999px;padding:3px 5px 3px 11px;font-size:11.5px;color:#5B4A35}
+.bchip{display:inline-flex;align-items:center;gap:5px;background:#FFFFFF;border:1px solid #F0DFA8;border-radius:999px;padding:3px 5px 3px 7px;font-size:11.5px;color:#5B4A35}
+.bchip .icv{flex:0 0 17px;width:17px;height:17px;display:grid;place-items:center}
+.bchip .icv svg{width:17px;height:17px;display:block}
 .bchip b{font-weight:600}
 .bchip em{font-style:normal;color:#9C8B76;font-size:10.5px}
 .bx{border:0;background:#F0E2C8;color:#7A6A53;width:17px;height:17px;border-radius:50%;font-size:12px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
@@ -352,6 +408,9 @@ footer a{color:#8A7B6B}
     column-gap:24px;align-items:start;
   }
   .top{grid-column:1/-1;position:static;padding:18px 0 14px}
+  .hook{grid-column:1/-1;margin:0 0 18px;padding:18px 22px 19px}
+  .hook h1{font-size:22px}
+  .hook p{font-size:13px;max-width:760px}
   /* 左栏=宠物常驻房：撑满一屏可用高度，宠物垂直居中，滚动右栏时它一直在 */
   .stage{
     grid-column:1;margin:0;position:sticky;top:76px;
@@ -393,6 +452,16 @@ footer a{color:#8A7B6B}
     </div>
   </header>
 
+  <div class="hook">
+    <h1>点一份麦当劳，喂给它 —— <em>它会长成你这顿饭的样子</em></h1>
+    <p>麦麦宠物把麦当劳 <b>158 款餐品的真实营养数据</b>，翻译成一只看得见的宠物：高蛋白它会发光、热量超标它圆一圈、钠太高它当场喊渴。<b>你不用看懂数字，看它就行。</b></p>
+    <div class="steps">
+      <span><i>1</i>挑餐品，凑成「这一餐」</span>
+      <span><i>2</i>喂给它，看它怎么变</span>
+      <span><i>3</i>看健康分与搭配建议</span>
+    </div>
+  </div>
+
   <section class="stage">
     <div class="petwrap">
       <canvas id="pet" width="200" height="200" aria-label="像素宠物 麦麦"></canvas>
@@ -400,8 +469,8 @@ footer a{color:#8A7B6B}
       <div class="bubble" id="bubble">今天想喂我吃点什么呀？点一份餐，我就知道你吃了啥 👀</div>
       <div class="chips-row" id="petTags"></div>
       <div class="minichips" id="miniChips"></div>
+      <div class="feedlayer" id="feedLayer"></div>
     </div>
-    <div class="eatlayer" id="eatLayer">🍔</div>
   </section>
 
   <main>
@@ -707,7 +776,7 @@ function buildBody(girth){
 }
 
 /* 通用绘制：把宠物画到任意 ctx（主画布 / 养成卡共用） */
-function paintPet(g, cx, cy, cell, girth, mood, t){
+function paintPet(g, cx, cy, cell, girth, mood, t, chew){
   const breathe = (mood === 'sleepy' || mood === 'hungry') ? 0 : Math.round(Math.sin(t/620));
   const box = 20 * cell;
 
@@ -732,8 +801,9 @@ function paintPet(g, cx, cy, cell, girth, mood, t){
     [[5,18],[6,18],[13,18],[14,18]].forEach(([x,y]) => px(x,y,PAL.d));
   }
 
-  const eyeKind   = { happy:'happy', sleepy:'closed', fat:'closed', thirsty:'wide', hungry:'sad', peckish:'open' }[mood] || 'open';
-  const mouthKind = { happy:'open', sleepy:'flat', fat:'wavy', thirsty:'open', hungry:'frown', peckish:'flat' }[mood] || 'smile';
+  /* 正在投喂时张嘴咀嚼：嘴在「张开/合上」之间切换，眼睛笑成 ^ ^ */
+  const eyeKind   = chew ? 'happy' : ({ happy:'happy', sleepy:'closed', fat:'closed', thirsty:'wide', hungry:'sad', peckish:'open' }[mood] || 'open');
+  const mouthKind = chew ? (Math.floor(t/95) % 2 ? 'open' : 'flat') : ({ happy:'open', sleepy:'flat', fat:'wavy', thirsty:'open', hungry:'frown', peckish:'flat' }[mood] || 'smile');
 
   ['L','R'].forEach(side => {
     const ox = side === 'L' ? 6 : 13;
@@ -940,6 +1010,156 @@ function filtered(){
   return list;
 }
 
+/* =========================================================
+   卡通食物图标 —— 按麦当劳产品大致外观手绘（内联 SVG，零请求）
+   21 类覆盖全部 158 条餐品，避免"只看到名字不知道是什么"
+   ========================================================= */
+const ICONS = {
+burger:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M6.5 19c0-7.6 5.8-11.6 13.5-11.6S33.5 11.4 33.5 19z" fill="#F0B95C" stroke="#D08A2E" stroke-width="1.3" stroke-linejoin="round"/>
+<circle cx="14" cy="12.6" r="1.05" fill="#FFF3D2"/><circle cx="20" cy="10.8" r="1.05" fill="#FFF3D2"/><circle cx="26" cy="12.6" r="1.05" fill="#FFF3D2"/>
+<rect x="5.5" y="18.4" width="29" height="4.2" rx="2.1" fill="#6FBF4A"/>
+<rect x="6" y="21.6" width="28" height="4.6" rx="2" fill="#F5C542"/>
+<rect x="6.5" y="25.2" width="27" height="5.6" rx="2.8" fill="#7A4A2B"/>
+<rect x="7.5" y="30.2" width="25" height="5" rx="2.5" fill="#E8A33D" stroke="#D08A2E" stroke-width="1"/></svg>`,
+muffin:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<rect x="6" y="8.5" width="28" height="8.5" rx="4.25" fill="#EFD3A0" stroke="#C99B52" stroke-width="1.2"/>
+<rect x="6" y="16.4" width="28" height="5" rx="2" fill="#8A5A33"/>
+<rect x="5" y="20.4" width="30" height="4.4" rx="2" fill="#F5C542"/>
+<rect x="6" y="24.2" width="28" height="8.5" rx="4.25" fill="#E4BE7E" stroke="#C99B52" stroke-width="1.2"/></svg>`,
+wrap:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<rect x="6" y="14.5" width="25" height="13" rx="6.5" fill="#F2D9A8" stroke="#CFA967" stroke-width="1.2"/>
+<ellipse cx="31" cy="21" rx="4" ry="6.5" fill="#E7C98F" stroke="#CFA967" stroke-width="1.2"/>
+<ellipse cx="31" cy="21" rx="2.3" ry="4.4" fill="#6FBF4A"/>
+<ellipse cx="30.4" cy="21" rx="1.2" ry="2.6" fill="#C4622F"/>
+<path d="M11 18h8M11 21.5h6M11 25h8" stroke="#DCBB84" stroke-width="1.1" stroke-linecap="round" fill="none"/></svg>`,
+fries:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<rect x="13" y="7" width="3.4" height="18" rx="1.6" fill="#FFC72C" stroke="#E0A81E" stroke-width="1"/>
+<rect x="17.4" y="4.5" width="3.4" height="20.5" rx="1.6" fill="#FFD84D" stroke="#E0A81E" stroke-width="1"/>
+<rect x="21.8" y="6.5" width="3.4" height="18.5" rx="1.6" fill="#FFC72C" stroke="#E0A81E" stroke-width="1"/>
+<rect x="26" y="8.5" width="3.4" height="16.5" rx="1.6" fill="#FFD84D" stroke="#E0A81E" stroke-width="1"/>
+<path d="M8.5 18.5h23l-2.3 15.2a3 3 0 0 1-3 2.6H13.8a3 3 0 0 1-3-2.6z" fill="#DA291C" stroke="#B01F16" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M9.6 22.6h20.8" stroke="#FFF0C9" stroke-width="2" fill="none"/></svg>`,
+nuggets:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="13.5" cy="16" rx="5.4" ry="4.4" fill="#F0B95C" stroke="#CE8C2A" stroke-width="1.1"/>
+<ellipse cx="20" cy="12.6" rx="5.4" ry="4.4" fill="#F5C542" stroke="#CE8C2A" stroke-width="1.1"/>
+<ellipse cx="26.6" cy="16" rx="5.4" ry="4.4" fill="#F0B95C" stroke="#CE8C2A" stroke-width="1.1"/>
+<path d="M8 20.5h24l-2.4 14.2a3 3 0 0 1-3 2.6H13.4a3 3 0 0 1-3-2.6z" fill="#DA291C" stroke="#B01F16" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M9.4 24.7h21.2" stroke="#FFF0C9" stroke-width="2" fill="none"/></svg>`,
+chicken:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M23.5 21.5l6 8" stroke="#F7E7C8" stroke-width="4.6" stroke-linecap="round" fill="none"/>
+<circle cx="31.5" cy="31.5" r="4.8" fill="#F7E7C8" stroke="#DCC9A6" stroke-width="1.1"/>
+<ellipse cx="16" cy="16.5" rx="10" ry="9.2" fill="#D9902F" stroke="#B4721F" stroke-width="1.2"/>
+<ellipse cx="13" cy="13.4" rx="4.4" ry="3.2" fill="#EBB668" opacity=".75"/>
+<circle cx="19" cy="20" r="1" fill="#B4721F" opacity=".5"/><circle cx="11" cy="19" r="1" fill="#B4721F" opacity=".5"/></svg>`,
+cone:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M13 17h14l-6.2 17.4a1 1 0 0 1-1.6 0z" fill="#E7C48D" stroke="#C9A467" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M13.9 20.8h11.2M15.4 25.2h8.2M16.9 29.6h5.2" stroke="#D3B37C" stroke-width="1" fill="none"/>
+<path d="M12 17c0-3.4 2-5 4.4-5 0-2.8 1.7-4.4 3.6-4.4s3.6 1.6 3.6 4.4c2.4 0 4.4 1.6 4.4 5z" fill="#FFF6E5" stroke="#E3D3B8" stroke-width="1.2" stroke-linejoin="round"/></svg>`,
+sundae:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M10 16h20l-2.2 16.4a2.6 2.6 0 0 1-2.6 2.2H14.8a2.6 2.6 0 0 1-2.6-2.2z" fill="#FFFFFF" stroke="#D9CDBB" stroke-width="1.3" stroke-linejoin="round"/>
+<ellipse cx="20" cy="16" rx="10.2" ry="4" fill="#8A5A33"/>
+<circle cx="15.6" cy="12.4" r="4.6" fill="#8A5A33"/><circle cx="23.4" cy="11.6" r="5.2" fill="#7A4A2B"/>
+<circle cx="19.8" cy="7.6" r="4" fill="#8A5A33"/><circle cx="20" cy="4.6" r="2.1" fill="#7A4A2B"/></svg>`,
+pie:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 8.5 33 29.5c.8 1.3-.2 3-1.7 3H8.7c-1.5 0-2.5-1.7-1.7-3z" fill="#F0C070" stroke="#CE9A4A" stroke-width="1.3" stroke-linejoin="round"/>
+<path d="M11 29.4h18M15.5 20h4M21.5 20h3.4" stroke="#CE9A4A" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>`,
+coldcup:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M10.5 14.5h19l-2.1 20a2.8 2.8 0 0 1-2.8 2.5h-9.2a2.8 2.8 0 0 1-2.8-2.5z" fill="#FFFFFF" stroke="#D9CDBB" stroke-width="1.3" stroke-linejoin="round"/>
+<rect x="21.5" y="3" width="3.2" height="10" rx="1.6" fill="#DA291C" transform="rotate(14 23 8)"/>
+<rect x="9.5" y="10" width="21" height="5" rx="2.2" fill="#DA291C"/>
+<path d="M12.4 20.6h15.2l-.7 7.4H13.1z" fill="#DA291C" opacity=".88"/></svg>`,
+hotcup:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 15.5h16l-1.7 16.6a2.6 2.6 0 0 1-2.6 2.3h-7.4a2.6 2.6 0 0 1-2.6-2.3z" fill="#FFFFFF" stroke="#D9CDBB" stroke-width="1.3" stroke-linejoin="round"/>
+<rect x="11" y="10.5" width="18" height="5.2" rx="2.2" fill="#6B4A2F"/>
+<rect x="12.6" y="19" width="14.8" height="8.4" rx="1.6" fill="#B07A46"/>
+<path d="M15.5 23.2h9" stroke="#8A5A33" stroke-width="1.1" fill="none"/></svg>`,
+tea:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="20" cy="32.8" rx="13.5" ry="3.4" fill="#EADFCC"/>
+<path d="M10 15.5h20l-2.4 12.4a6.2 6.2 0 0 1-6.1 5h-3a6.2 6.2 0 0 1-6.1-5z" fill="#FFFDF8" stroke="#CFBEA3" stroke-width="1.3" stroke-linejoin="round"/>
+<path d="M30 18.5c4 0 5.4 4.4 1 6.4" fill="none" stroke="#CFBEA3" stroke-width="1.3"/>
+<ellipse cx="20" cy="15.5" rx="10" ry="2.6" fill="#B0703A"/>
+<path d="M17.5 10c1.4-2.2-1.2-3.4.2-5.6M22.5 10c1.4-2.2-1.2-3.4.2-5.6" fill="none" stroke="#D8CBB6" stroke-width="1.2" stroke-linecap="round"/></svg>`,
+icecup:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M11 18.5h18l-1.9 15.6a2.6 2.6 0 0 1-2.6 2.3h-9a2.6 2.6 0 0 1-2.6-2.3z" fill="#FFFFFF" stroke="#D9CDBB" stroke-width="1.3" stroke-linejoin="round"/>
+<path d="M10 18.5c0-6.1 4.5-10.5 10-10.5s10 4.4 10 10.5z" fill="#EAF3F9" stroke="#CFDCE6" stroke-width="1.2" stroke-linejoin="round"/>
+<rect x="16.5" y="5" width="7" height="3" rx="1.5" fill="#7FC3E8"/>
+<path d="M12.5 24.5h15l-.6 5.4H13.1z" fill="#8A5A33" opacity=".85"/></svg>`,
+corn:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M11 16.5h18l-1.8 17a2.6 2.6 0 0 1-2.6 2.2h-9.2a2.6 2.6 0 0 1-2.6-2.2z" fill="#FFFFFF" stroke="#D9CDBB" stroke-width="1.3" stroke-linejoin="round"/>
+<ellipse cx="20" cy="16.5" rx="9.2" ry="3.6" fill="#E8B23A"/>
+<circle cx="15.4" cy="13" r="2.6" fill="#FFD84D"/><circle cx="20" cy="11" r="2.8" fill="#FFC72C"/>
+<circle cx="24.6" cy="13" r="2.6" fill="#FFD84D"/><circle cx="17.7" cy="9.4" r="2.2" fill="#FFC72C"/>
+<circle cx="22.3" cy="9.4" r="2.2" fill="#FFD84D"/></svg>`,
+hashbrown:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="20" cy="21" rx="13.5" ry="10.2" fill="#E8A33D" stroke="#C4822A" stroke-width="1.3"/>
+<ellipse cx="20" cy="21" rx="10.2" ry="7.4" fill="#F0B95C"/>
+<circle cx="15" cy="18" r="1.1" fill="#D08A2E"/><circle cx="24" cy="20" r="1" fill="#D08A2E"/>
+<circle cx="19" cy="24" r="1" fill="#D08A2E"/><circle cx="26" cy="25" r=".9" fill="#D08A2E"/></svg>`,
+youtiao:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<rect x="4" y="14.5" width="32" height="11" rx="5.5" fill="#E8A33D" stroke="#C4822A" stroke-width="1.3"/>
+<path d="M9 17.6h22" stroke="#F7D08A" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+<path d="M9 22.6h22" stroke="#C4822A" stroke-width="1.2" stroke-linecap="round" fill="none"/></svg>`,
+apple:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 12.6c-2.4-2-6.4-2.2-9.2.6-3.6 3.6-3 10.6.6 15 2 2.4 4.6 4 7 3.2 1.2-.4 2-.9 2.6-.9s1.4.5 2.6.9c2.4.8 5-.8 7-3.2 3.6-4.4 4.2-11.4.6-15-2.8-2.8-6.8-2.6-9.2-.6z" fill="#E8554E" stroke="#C63C36" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M20 12.6V8" stroke="#8A5A33" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+<path d="M20 9.4c1.6-3 4.6-3.6 7-3-1 3-3.6 4.4-7 3z" fill="#6FBF4A" stroke="#4E9A32" stroke-width="1" stroke-linejoin="round"/>
+<ellipse cx="14.4" cy="18.6" rx="2" ry="3" fill="#FFFFFF" opacity=".38"/></svg>`,
+congee:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<ellipse cx="20" cy="32.6" rx="12.6" ry="2.8" fill="#EADFCC"/>
+<path d="M8.5 18.5h23c0 8.6-5.2 14-11.5 14S8.5 27.1 8.5 18.5z" fill="#FFFFFF" stroke="#D9CDBB" stroke-width="1.3" stroke-linejoin="round"/>
+<ellipse cx="20" cy="18.5" rx="11.5" ry="3.4" fill="#F2E6CE"/>
+<path d="M15.4 18.2c1-1.8 3-1.8 4 0M21 20c.9-1.5 2.5-1.5 3.4 0" stroke="#DCCBA6" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+<path d="M16.5 12c1.3-2-1-3-.3-4.6M23 12c1.3-2-1-3-.3-4.6" stroke="#D8CBB6" stroke-width="1.1" fill="none" stroke-linecap="round"/></svg>`,
+cake:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<rect x="9" y="15" width="22" height="17" rx="3.4" fill="#7A4A2B" stroke="#5E3620" stroke-width="1.2"/>
+<rect x="9" y="15" width="22" height="6" rx="3" fill="#9A6238"/>
+<circle cx="14" cy="24" r="1.5" fill="#F7EBD4"/><circle cx="20" cy="26.5" r="1.5" fill="#F7EBD4"/>
+<circle cx="26" cy="23" r="1.5" fill="#F7EBD4"/><circle cx="17" cy="29" r="1.4" fill="#F7EBD4"/>
+<circle cx="23.5" cy="29.5" r="1.4" fill="#F7EBD4"/></svg>`,
+bottle:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<rect x="14.5" y="6" width="11" height="4.6" rx="2" fill="#7FC3E8"/>
+<path d="M15 11h10v21a3.4 3.4 0 0 1-3.4 3.4h-3.2A3.4 3.4 0 0 1 15 32z" fill="#E3F2FA" stroke="#9CC7DD" stroke-width="1.2"/>
+<rect x="16.4" y="19" width="7.2" height="8" rx="1.4" fill="#BFE0F0"/>
+<path d="M17.6 22.6h4.8M20 21.2v5" stroke="#FFFFFF" stroke-width="1.1" fill="none"/></svg>`,
+milk:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<path d="M13 13.5 20 8.5l7 5V33a1.6 1.6 0 0 1-1.6 1.6H14.6A1.6 1.6 0 0 1 13 33z" fill="#FFFFFF" stroke="#CFC3B0" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M13 13.5h14M20 8.5v5" stroke="#CFC3B0" stroke-width="1.2" fill="none"/>
+<rect x="15.4" y="19" width="9.2" height="9" rx="1.6" fill="#8FCBE8"/>
+<path d="M17 23.5h6" stroke="#FFFFFF" stroke-width="1.2" fill="none"/></svg>`,
+sausage:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+<rect x="6" y="14.5" width="28" height="11" rx="5.5" fill="#B4552B" stroke="#8A3F1E" stroke-width="1.2" transform="rotate(-9 20 20)"/>
+<path d="M13 15.6l3 8M19 14.6l3 8M25 13.6l3 8" stroke="#8A3F1E" stroke-width="1.3" stroke-linecap="round" transform="rotate(-9 20 20)" fill="none"/></svg>`
+};
+
+/* 餐品名 → 图标类别（顺序：具体在前，兜底在后） */
+function iconKeyOf(name){
+  const n = name || '';
+  if(/纯悦/.test(n)) return 'bottle';
+  if(/纯牛奶/.test(n)) return 'milk';
+  if(/粥/.test(n)) return 'congee';
+  if(/苹果片/.test(n)) return 'apple';
+  if(/油条/.test(n)) return 'youtiao';
+  if(/薯饼/.test(n)) return 'hashbrown';
+  if(/玉米杯/.test(n)) return 'corn';
+  if(/雪冰/.test(n)) return 'icecup';
+  if(/锡兰红茶|伯爵红茶|川宁/.test(n)) return 'tea';
+  if(/拉明顿|奶冻|爆珠/.test(n)) return 'cake';
+  if(/圆筒/.test(n)) return 'cone';
+  if(/新地|麦旋风|阿芙佳朵/.test(n)) return 'sundae';
+  if(/派/.test(n)) return 'pie';
+  if(/薯条/.test(n)) return 'fries';
+  if(/麦乐鸡|趣鸡球|鸡块/.test(n)) return 'nuggets';
+  if(/卷/.test(n)) return 'wrap';
+  if(/香肠/.test(n)) return 'sausage';
+  if(/鸡翅|V翅|鸡排|脆汁鸡|琵琶腿|里脊|绝代双翅|蜜汁快乐|果然多肉/.test(n)) return 'chicken';
+  if(/麦满分|炒双蛋堡/.test(n)) return 'muffin';
+  if(/可乐|雪碧|怡泉|柠檬红茶|黄金橙橙|阳光橙|苹果汁/.test(n)) return 'coldcup';
+  if(/咖啡|美式|玛奇朵|卡布奇诺|浓缩|奶铁|燕麦奶|黑巧|朱古力|抹茶牛奶|热牛|冰牛|豆浆/.test(n)) return 'hotcup';
+  return 'burger';
+}
+function foodIcon(name){ return ICONS[iconKeyOf(name)] || ICONS.burger; }
+
 function renderCats(){
   $('cats').innerHTML = CATS.map(c =>
     `<button class="cat ${UI.cat===c.n?'on':''}" data-c="${c.n}">${c.n}</button>`
@@ -955,8 +1175,10 @@ function renderGrid(){
   const picked = new Set(BASKET.map(i => i.productName));
   $('grid').innerHTML = shown.length ? shown.map(i => {
     const pct = Math.min(i.energyKcal/800, 1) * 100;
-    return `<button class="item ${picked.has(i.productName)?'picked':''}" data-n="${i.productName.replace(/"/g,'&quot;')}">
-      <span class="nm">${i.productName}</span>
+    const nm = i.productName.replace(/"/g,'&quot;');
+    return `<button class="item ${picked.has(i.productName)?'picked':''}" data-n="${nm}" title="${nm} · ${i.energyKcal} kcal">
+      <span class="ic">${foodIcon(i.productName)}</span>
+      <span class="col"><span class="nm">${i.productName}</span></span>
       <span class="kc"><span>${i.energyKcal} kcal</span><span>蛋白 ${i.protein}g</span></span>
       <span class="bar"><i style="width:${pct}%;background:${kcalColor(i.energyKcal)}"></i></span>
     </button>`;
@@ -976,7 +1198,7 @@ function renderBasket(){
     $('basket').innerHTML = `<div class="basketempty">还没选餐品 —— 想在点餐前先看看这顿怎么样？挑两样凑一顿试试。</div>`;
   } else {
     $('basket').innerHTML = BASKET.map((i,idx) =>
-      `<span class="bchip">${i.productName} <em>${i.energyKcal}kcal</em>
+      `<span class="bchip"><span class="icv">${foodIcon(i.productName)}</span>${i.productName} <em>${i.energyKcal}kcal</em>
         <button class="bx" data-i="${idx}" title="移除" aria-label="移除">×</button></span>`
     ).join('');
     $('basket').querySelectorAll('.bx').forEach(b => b.onclick = (e) => {
@@ -985,14 +1207,18 @@ function renderBasket(){
       renderBasket(); renderGrid(); renderAnalysis();
     });
   }
-  $('feedBtn').disabled = !BASKET.length;
+  $('feedBtn').disabled = !BASKET.length || CHEWING;
 }
 
 function renderKV(n){
   $('kv').innerHTML = FIELDS.map(f =>
     `<div><span>${f.label}</span><b>${Math.round(n[f.k]||0)}<i>${f.unit}</i></b></div>`
   ).join('');
-  $('nName').textContent = n.productName;
+  const ic = (BASKET.length > 1)
+    ? [...new Set(BASKET.map(i => iconKeyOf(i.productName)))].slice(0,3)
+        .map(k => `<span class="ni">${ICONS[k]}</span>`).join('')
+    : `<span class="ni">${foodIcon(n.productName)}</span>`;
+  $('nName').innerHTML = ic + n.productName;
 }
 
 function renderBars(n){
@@ -1439,34 +1665,79 @@ const IDLE_LINE = {
 const IDLE_LABEL = { wait:'待喂食', normal:'满足', peckish:'有点饿', hungry:'饿了' };
 let lastIdle = '';
 
+const FEED_FLY = 700;                                   // 单件餐品飞行时长(ms)
+const feedStep = n => n <= 4 ? 210 : Math.max(120, Math.round(840 / (n - 1)));
+
+function petGulp(){
+  const w = document.querySelector('.petwrap');
+  if(!w) return;
+  w.classList.remove('gulp');
+  void w.offsetWidth;
+  w.classList.add('gulp');
+  setTimeout(() => w.classList.remove('gulp'), 360);
+}
+
 function feed(){
   if(!BASKET.length){ toast('先选餐品加进「这一餐」'); return; }
+  if(CHEWING){ toast('它还在嚼呢，等一下～'); return; }
+
+  const items = BASKET.slice();          // 快照：投喂过程中再挑餐品也不影响这一顿
   const n = basketTotals();
   const { total } = healthScore(n);
   const st = petStateOf(n, total);
 
-  $('eatLayer').textContent = pickEmoji(BASKET[0].productName);
-  $('eatLayer').classList.remove('go');
-  void $('eatLayer').offsetWidth;
-  $('eatLayer').classList.add('go');
-
+  CHEWING = true;
+  $('feedBtn').disabled = true;
   $('bubble').classList.add('pop');
   setTimeout(()=> $('bubble').classList.remove('pop'), 200);
-  $('bubble').textContent = '嚼嚼嚼… ( ˘ω˘ )';
+  $('bubble').textContent = items.length > 1 ? '一份一份来… ( ˘ω˘ )' : '啊——呜！( ˘ω˘ )';
   $('petState').textContent = '正在吃';
-  CHEWING = true;
 
+  const layer = $('feedLayer');
+  layer.innerHTML = '';
+  const step = feedStep(items.length);
+
+  items.forEach((it, i) => {
+    const t0 = i * step;
+    /* ① 从下方抛入，弧线飞进嘴里，在嘴边缩小消失 */
+    setTimeout(() => {
+      const d = document.createElement('div');
+      d.className = 'flyitem';
+      d.style.setProperty('--ox', ((i % 2 ? 1 : -1) * (12 + (i % 3) * 7)) + 'px');
+      d.innerHTML = foodIcon(it.productName);
+      layer.appendChild(d);
+      void d.offsetWidth;
+      d.classList.add('go');
+      setTimeout(() => d.remove(), FEED_FLY + 140);
+    }, t0);
+    /* ② 到达嘴边：宠物咕咚咬一口，飘出这件的热量 */
+    setTimeout(() => {
+      petGulp();
+      const k = document.createElement('div');
+      k.className = 'flykcal';
+      k.textContent = '+' + it.energyKcal + ' kcal';
+      layer.appendChild(k);
+      void k.offsetWidth;
+      k.classList.add('go');
+      setTimeout(() => k.remove(), 1100);
+    }, t0 + Math.round(FEED_FLY * 0.62));
+  });
+
+  const totalMs = (items.length - 1) * step + FEED_FLY + 90;
   clearTimeout(eatTimer);
   eatTimer = setTimeout(() => {
     CHEWING = false;
-    commitMeal(n, total, st);
-  }, 620);
+    layer.innerHTML = '';
+    commitMeal(n, total, st, items);
+    $('feedBtn').disabled = !BASKET.length;
+  }, totalMs);
 }
 
-function commitMeal(n, total, st){
+function commitMeal(n, total, st, items){
   const d = todayKey(), now = Date.now();
+  const list = (items && items.length) ? items : BASKET.slice();
   /* 逐项记入历史（保证「尝鲜家 / 最常点」按单品统计） */
-  BASKET.forEach(i => {
+  list.forEach(i => {
     S.meals.push({ n:i.productName, d, k:i.energyKcal, p:i.protein, f:i.fat, c:i.carbohydrate, s:i.sodium, ca:i.calcium, sc:healthScore(i).total, ts:now });
   });
 
@@ -1496,25 +1767,14 @@ function commitMeal(n, total, st){
   renderAnalysis(); renderBasket(); renderGrid();
   renderMini(); renderToday(); renderGrowth();
 
-  const names = BASKET.map(i => i.productName).join(' + ');
+  const names = list.map(i => i.productName).join(' + ');
   toast(`麦麦吃了「${names}」 · 健康分 ${total}`);
   LAST = n;                           // 篮子清空后，营养面板继续展示刚喂的这一餐
-  BASKET = [];
+  BASKET = BASKET.filter(b => list.indexOf(b) < 0);   // 只移走被吃掉的项目
   renderBasket(); renderGrid();
   renderAnalysis();
 
   if(newly.length) setTimeout(() => toast(`🎖 解锁成就：${newly.map(a=>a.n).join('、')}`), 1900);
-}
-
-function pickEmoji(name){
-  if(/薯条|薯饼/.test(name)) return '🍟';
-  if(/可乐|雪碧|怡泉|纯悦/.test(name)) return '🥤';
-  if(/咖啡|美式|玛奇朵|卡布奇诺|奶铁|浓缩/.test(name)) return '☕';
-  if(/冰淇淋|新地|麦旋风|雪顶|雪冰|阿芙佳朵/.test(name)) return '🍦';
-  if(/粥|油条|蛋|麦满分/.test(name)) return '🍳';
-  if(/鸡块|鸡翅|鸡排|鸡球|V翅|里脊|琵琶腿|鸡扒/.test(name)) return '🍗';
-  if(/苹果|玉米|沙拉|蔬/.test(name)) return '🥗';
-  return '🍔';
 }
 
 /* ---------- 通用 ---------- */
@@ -1610,7 +1870,7 @@ addEventListener('keydown', e => {
     } else { lastIdle = ''; }
     ctx.clearRect(0,0,petCanvas.width,petCanvas.height);
     const lv = levelOf(S.meals.length);
-    paintPet(ctx, 100, 100, 10 * scaleForLevel(lv), anim.girth, mood, anim.t);
+    paintPet(ctx, 100, 100, 10 * scaleForLevel(lv), anim.girth, mood, anim.t, CHEWING);
     requestAnimationFrame(loop);
   })();
 })();
