@@ -25,6 +25,10 @@ data/_competitors/
 rank_tmp.md
 docs/对标分析-*.md
 
+# 产品复盘与自我诊断（含竞品星数数据与自我批评，绝不进公开仓库）
+docs/诊断-*.md
+思考.txt
+
 # 榜单/同行调研中间数据（抓取产物，本地研究用）
 _rank*.md
 _ranked*.json
