@@ -6,6 +6,10 @@
 # 官方规则存档（本地参考用，不入仓库）
 docs/official/
 
+# Python 字节码缓存
+__pycache__/
+*.pyc
+
 # 系统与编辑器
 .DS_Store
 Thumbs.db
