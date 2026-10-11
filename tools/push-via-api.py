@@ -221,46 +221,73 @@ def push_chain(token: str, slug: str, branch: str, base: str, head: str,
 # --------------------------------------------------------------------------- #
 # 对齐：用 API 把远端提交对象在本地精确重建
 # --------------------------------------------------------------------------- #
-def align(token: str, slug: str, branch: str) -> int:
-    """本机 git→github.com 不通，`git fetch` 也用不了，于是用 API 重建远端对象。
+def _epoch_utc(date: str) -> int:
+    """GitHub 返回的 `2026-10-11T16:23:13Z` → Unix 秒。"""
+    return int(datetime.datetime.fromisoformat(
+        date.replace("Z", "+00:00")).timestamp())
 
-    **重建是搜索 + 自校验的：算出的 SHA 必须等于远端 SHA 才写入本地对象库**，
-    所以不存在写错的可能。要搜索是因为 `/git/commits` 返回的 date 是 UTC（`...Z`），
-    原始时区偏移（例如 `+0800`）已经丢了，只能把几种偏移/结尾换行组合都试一遍。
+
+def rebuild_one(token: str, slug: str, sha: str) -> bool:
+    """在本地对象库精确重建远端提交对象 `sha`。成功返回 True。
+
+    做法是**搜索 + 自校验**：算出的 commit SHA 必须等于远端 SHA 才用
+    `hash-object -w` 写入本地对象库，所以不存在写错的可能。需要搜索是因为：
+      · `/git/commits` 把 author/committer 的 date 统一返回成 UTC（`...Z`），
+        原始时区偏移（如 `+0800`）已经丢了 —— 只能把几种偏移都试一遍；
+      · **author 与 committer 的时间戳可能不同**（amend / rebase / 补推后常见），
+        所以必须分别换算 `ats` / `cts`，不能共用一个 ts；
+      · message 结尾的换行也可能被裁掉，两个变体都试。
     """
-    remote = api("GET", f"/repos/{slug}/git/ref/heads/{branch}", token)["object"]["sha"]
-    if git("cat-file", "-t", remote, check=False).strip() == b"commit":
-        print(f"[=] 远端提交 {remote[:8]} 本地已存在，无需重建")
-    else:
-        c = api("GET", f"/repos/{slug}/git/commits/{remote}", token)
-        ts = int(datetime.datetime.fromisoformat(
-            c["author"]["date"].replace("Z", "+00:00")).timestamp())
-        msg = c["message"].encode("utf-8")
-        print(f"  远端提交 {remote[:8]} 本地没有，开始重建（message {len(msg)} 字节）")
-        hit = None
-        for tz in ("+0000", "+0800", "-0000"):
+    c = api("GET", f"/repos/{slug}/git/commits/{sha}", token)
+    ats = _epoch_utc(c["author"]["date"])
+    cts = _epoch_utc(c["committer"]["date"])
+    msg = c["message"].encode("utf-8")
+    parents = "".join(f"parent {p['sha']}\n" for p in c.get("parents", []))
+    for atz in ("+0000", "+0800", "-0000"):
+        for ctz in ("+0000", "+0800", "-0000"):
             for body in (msg, msg.rstrip(b"\n")):
                 for tail in (b"", b"\n"):
                     cand = (
-                        f"tree {c['tree']['sha']}\n"
-                        + "".join(f"parent {p['sha']}\n" for p in c.get("parents", []))
-                        + f"author {c['author']['name']} <{c['author']['email']}> {ts} {tz}\n"
-                        + f"committer {c['committer']['name']} <{c['committer']['email']}> {ts} {tz}\n\n"
+                        f"tree {c['tree']['sha']}\n" + parents
+                        + f"author {c['author']['name']} <{c['author']['email']}> {ats} {atz}\n"
+                        + f"committer {c['committer']['name']} <{c['committer']['email']}> {cts} {ctz}\n\n"
                     ).encode("utf-8") + body + tail
-                    if git("hash-object", "-t", "commit", "--stdin", stdin=cand).decode().strip() == remote:
-                        hit = cand
-                        break
-                if hit:
-                    break
-            if hit:
-                break
-        if not hit:
-            print("[x] 重建失败：候选组合都没命中远端 SHA。", file=sys.stderr)
-            print(f"    两侧内容仍然一致（tree 相同 = {c['tree']['sha'][:8]}）。", file=sys.stderr)
-            print("    可选收敛方式：本地建一个 tree 相同的提交，再用 force 更新 ref。", file=sys.stderr)
-            return 1
-        git("hash-object", "-t", "commit", "-w", "--stdin", stdin=hit)
-        print(f"[ok] 已重建远端提交对象 {remote[:8]}（自校验通过）")
+                    if git("hash-object", "-t", "commit", "--stdin",
+                           stdin=cand).decode().strip() == sha:
+                        git("hash-object", "-t", "commit", "-w", "--stdin", stdin=cand)
+                        return True
+    return False
+
+
+def align(token: str, slug: str, branch: str) -> int:
+    """本机 git→github.com 不通、`git fetch` 也用不了，于是用 API 重建远端对象。
+
+    沿第一父链回溯，把所有「远端有、本地没有」的提交都补齐（通常只有 1~2 个），
+    每个都走 `rebuild_one` 的搜索 + 自校验重建。
+    """
+    remote = api("GET", f"/repos/{slug}/git/ref/heads/{branch}", token)["object"]["sha"]
+
+    missing, probe = [], remote
+    while git("cat-file", "-t", probe, check=False).strip() != b"commit":
+        missing.append(probe)
+        try:
+            probe = api("GET", f"/repos/{slug}/git/commits/{probe}", token)["parents"][0]["sha"]
+        except (RuntimeError, IndexError, KeyError):
+            break
+
+    if not missing:
+        print(f"[=] 远端提交 {remote[:8]} 本地已存在，无需重建")
+    else:
+        for i, sha in enumerate(reversed(missing)):
+            c = api("GET", f"/repos/{slug}/git/commits/{sha}", token)
+            subject = c["message"].splitlines()[0][:50] if c["message"] else "(空)"
+            print(f"  重建 {sha[:8]} · {subject}（{i + 1}/{len(missing)}）")
+            if not rebuild_one(token, slug, sha):
+                print(f"[x] 重建失败：候选组合都没命中远端 SHA {sha[:8]}", file=sys.stderr)
+                print(f"    两侧内容仍然一致（tree 相同 = {c['tree']['sha'][:8]}）。", file=sys.stderr)
+                print("    可选收敛方式：本地建一个 tree 相同的提交，再用 --force 更新 ref。", file=sys.stderr)
+                return 1
+        print(f"[ok] 已重建 {len(missing)} 个远端提交对象（自校验通过）")
 
     git("config", f"branch.{branch}.remote", "origin")
     git("config", f"branch.{branch}.merge", f"refs/heads/{branch}")
