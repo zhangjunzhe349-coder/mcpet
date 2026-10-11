@@ -217,9 +217,23 @@ async function waitReady(cdp, timeoutLoops = 60) {
       return {
         ink, yellow, petWidth: maxX-minX+1,
         grid: document.querySelectorAll('#grid .item').length,
-        gridIcons: document.querySelectorAll('#grid .item .ic svg').length,
-        iconKeys: [...new Set(NUTRITION.items.map(i => iconKeyOf(i.productName)))].length,
-        iconMiss: NUTRITION.items.filter(i => !/^<svg/.test(ICONS[iconKeyOf(i.productName)] || '')).length,
+        gridArt: document.querySelectorAll('#grid .item .ic .fdr svg').length,
+        gridPhotos: document.querySelectorAll('#grid .item .ic .fp').length,
+        gridNoPhoto: document.querySelectorAll('#grid .item .ic.nop').length,
+        iconKinds: [...new Set(NUTRITION.items.map(i => specOf(i.productName).kind))].length,
+        iconMiss: NUTRITION.items.filter(i => !/^<svg/.test(foodIcon(i.productName) || '')).length,
+        photoCover: Object.keys(PHOTOS).length,
+        photoTotal: PHOTO_META.total,
+        title: document.title,
+        brand: (document.querySelector('.brand div') || {}).textContent || '',
+        mcpLeft: document.querySelectorAll('#mcpCards, .mcpcard').length,
+        sizeDiff: (() => {
+          const g = n => (foodIcon(n).match(/width="3"/g) || []).length;
+          return [foodIcon('小薯条') !== foodIcon('大薯条'),
+                  foodIcon('麦乐鸡4块') !== foodIcon('麦乐鸡5块'),
+                  foodIcon('香芋派') !== foodIcon('菠萝派'),
+                  foodIcon('可乐小杯') !== foodIcon('可乐大杯')];
+        })(),
         hookH1: ((document.querySelector('.hook h1')||{}).textContent || '').trim(),
         hookSteps: document.querySelectorAll('.hook .steps span').length,
         hookBox: (()=>{ const h=document.querySelector('.hook'); if(!h) return 0; const r=h.getBoundingClientRect(); return Math.round(r.height); })(),
@@ -232,20 +246,30 @@ async function waitReady(cdp, timeoutLoops = 60) {
         mcpCards: document.querySelectorAll('#mcpCards .mcpcard').length,
         budget: document.querySelectorAll('#budRows .budrow').length,
         ach: document.querySelectorAll('#achGrid .achitem').length,
-        petBox: (()=>{const r=c.getBoundingClientRect();return [Math.round(r.width),Math.round(r.height)];})()
+        petBox: (()=>{const r=c.getBoundingClientRect();return [Math.round(r.width),Math.round(r.height)];})(),
+        petRole: ((document.querySelector('.petrole')||{}).textContent || '').trim(),
+        petCss: Math.round(c.getBoundingClientRect().width),
+        petArea: (()=>{ const st=document.querySelector('.stage').getBoundingClientRect(); return Math.round(st.height); })()
       };
     })()`);
     check('宠物 canvas 已绘制（非透明像素 > 3000）', render && render.ink > 3000, render && ('ink=' + render.ink));
     check('宠物主色（麦当劳黄）已上色', render && render.yellow > 1500, render && ('yellow=' + render.yellow));
     check('宠物画布尺寸 > 0', render && render.petBox[0] > 0 && render.petBox[1] > 0, render && render.petBox.join('x'));
     check('宠物为参数化体型（横向占比合理）', render && render.petWidth >= 90 && render.petWidth <= 200, render && ('w=' + render.petWidth + 'px'));
+    check('宠物已标注为副产品（不抢营养记录的主位）', render && /副产品/.test(render.petRole), `role="${render && render.petRole}"`);
     check('餐品网格首屏 12 项', render && render.grid === 12, render && ('grid=' + render.grid));
     check('分类 chips 6 个', render && render.cats === 6, render && ('cats=' + render.cats));
     check('底部 Tab 5 个', render && render.tabs === 5, render && ('tabs=' + render.tabs));
-    check('MCP 功能卡 4 张', render && render.mcpCards === 4, render && ('cards=' + render.mcpCards));
-    check('每张餐品卡都带卡通图标', render && render.gridIcons === render.grid && render.grid > 0, `icons=${render && render.gridIcons}/${render && render.grid}`);
-    check('图标分类覆盖全部 158 条（无一条落空）', render && render.iconMiss === 0, 'miss=' + (render && render.iconMiss));
-    check('图标具备足够的品类区分度（≥12 类）', render && render.iconKeys >= 12, 'keys=' + (render && render.iconKeys));
+    check('已移除 MCP 模块（用户要求精简）', render && render.mcpLeft === 0, 'left=' + (render && render.mcpLeft));
+    check('每张餐品卡都带视觉图标（实拍图或手绘）', render && (render.gridArt === render.grid) && render.grid > 0, `art=${render && render.gridArt}/${render && render.grid}`);
+    check('图标覆盖全部 158 条（手绘兜底无落空）', render && render.iconMiss === 0, 'miss=' + (render && render.iconMiss));
+    check('图标具备足够的品类区分度（≥12 类）', render && render.iconKinds >= 12, 'kinds=' + (render && render.iconKinds));
+    check('已内置麦当劳官方白底图（≥50 条）', render && render.photoCover >= 50, `photos=${render && render.photoCover}/${render && render.photoTotal}`);
+    check('无官方图时自动落到手绘图标（互斥渲染）', render && (render.gridNoPhoto + render.gridPhotos === render.grid), `photo=${render && render.gridPhotos} 手绘=${render && render.gridNoPhoto}`);
+    check('同品类不同规格画得不一样（小/大薯条 · 4/5块鸡块 · 香芋/菠萝派 · 小/大杯）',
+      render && render.sizeDiff.every(Boolean), 'diff=' + JSON.stringify(render && render.sizeDiff));
+    check('产品名已改为营养账本口径（一眼看出是营养记录）',
+      render && /营养账本/.test(render.brand) && /营养/.test(render.title), `brand="${render && render.brand}" title="${render && render.title}"`);
     check('餐品卡「热量/蛋白」同行不折行、不溢出', render && render.kcLines === 1 && render.kcOverflow <= 1, `lines=${render && render.kcLines} overflow=${render && render.kcOverflow}`);
     check('首屏钩子已渲染（说清这是什么）', render && render.hookH1.length > 8 && render.hookBox > 60, `h1="${render && render.hookH1.slice(0, 22)}…" h=${render && render.hookBox}`);
     check('首屏三步引导齐全', render && render.hookSteps === 3, 'steps=' + (render && render.hookSteps));
@@ -449,7 +473,7 @@ async function waitReady(cdp, timeoutLoops = 60) {
     const orderJson = JSON.stringify({
       data: { orders: [{ orderId: 'TEST', products: [{ productName: '巨无霸' }, { productName: '中薯条' }, { productName: '可口可乐中杯' }] }] }
     });
-    await cdp.ev(`document.querySelectorAll('.tab')[4].click()`);
+    await cdp.ev(`document.querySelectorAll('.tab')[1].click()`);
     await sleep(200);
     await cdp.ev(`(() => { const t = document.getElementById('orderIn');
       t.value = ${JSON.stringify(orderJson)}; document.getElementById('analyzeBtn').click(); })()`);
@@ -462,7 +486,70 @@ async function waitReady(cdp, timeoutLoops = 60) {
     check('饮食报告已生成', rep.shown === 'block' && rep.items >= 1, `items=${rep.items}`);
     check('报告含平均健康分', /平均健康分/.test(rep.text), rep.text.slice(0, 70));
 
-    console.log('\n【13】手机端适配（390×844）');
+    console.log('\n【13】实时榜单（进页面自动拉 · 点行跳 GitHub）');
+    /* 解析器是纯函数，先离线单测一遍，不依赖网络 */
+    const parseRank = await cdp.ev(`(() => {
+      const md = ['| 名次 | 项目名称 | Owner 昵称 | Star 数 |',
+                  '| --- | --- | --- | --- |',
+                  '| 1 | 甲项目 | 张** | 54 |',
+                  '| 2 | 乙项目 | 李** | 26 |',
+                  '更新时间：2026-10-11 23:00:30'].join('\\n');
+      const p = parseRanking(md);
+      return { n: p.rows.length, rank: p.rows[0].rank, name: p.rows[0].name, stars: p.rows[0].stars, upd: p.updated };
+    })()`);
+    check('榜单解析器独立可用（表头/分隔行不会误入）',
+      parseRank.n === 2 && parseRank.rank === 1 && parseRank.name === '甲项目' && parseRank.stars === 54 && /2026-10-11/.test(parseRank.upd),
+      JSON.stringify(parseRank));
+
+    const repoMap = await cdp.ev(`(() => {
+      const vs = Object.values(RANK_INDEX.repos);
+      return { n: vs.length, wellFormed: vs.every(v => /^[\\w.-]+\\/[\\w.-]+$/.test(v)), src: RANK_INDEX.sourceUrl || '' };
+    })()`);
+    check('内置「项目名 → 仓库」映射足够大（≥300）', repoMap.n >= 300, `n=${repoMap.n}`);
+    check('仓库映射格式规范（owner/repo）', repoMap.wellFormed, `wellFormed=${repoMap.wellFormed}`);
+
+    // 切到榜单面板，等它渲染（无网络时自动落到内置快照，不允许开天窗）
+    await cdp.ev(`document.querySelectorAll('.tab')[4].click()`);
+    await sleep(250);
+    await waitFor(cdp, `document.querySelectorAll('#rkList .rkrow').length > 0`, 12000);
+    await sleep(200);
+    const rank = await cdp.ev(`(() => {
+      const panel = document.getElementById('panel-rank');
+      const rows = [...document.querySelectorAll('#rkList .rkrow')];
+      const links = rows.filter(r => r.tagName === 'A');
+      const hrefs = links.map(a => a.getAttribute('href') || '');
+      return {
+        panelOn: panel.classList.contains('on'),
+        rows: rows.length,
+        links: links.length,
+        allGithub: hrefs.length > 0 && hrefs.every(h => /^https:\\/\\/github\\.com\\/[\\w.-]+\\/[\\w.-]+$/.test(h)),
+        blank: links.every(a => a.getAttribute('target') === '_blank'),
+        noopener: links.every(a => (a.getAttribute('rel') || '').indexOf('noopener') >= 0),
+        state: (document.getElementById('rkState') || {}).textContent || '',
+        meta: (document.getElementById('rkMeta') || {}).textContent || '',
+        mine: (document.getElementById('rkMine') || {}).textContent || '',
+        mineHref: (document.querySelector('#rkMine .rklinks a') || {}).getAttribute ? (document.querySelector('#rkMine .rklinks a').getAttribute('href') || '') : '',
+        hasRefresh: !!document.getElementById('rkRefresh'),
+        srcHref: (document.getElementById('rkSrc') || {}).getAttribute ? (document.getElementById('rkSrc').getAttribute('href') || '') : '',
+        disc: (document.getElementById('disc3') || {}).textContent || '',
+        cached: !!localStorage.getItem('mcpet.rank.v1'),
+        rowH: rows.length ? Math.round(rows[0].getBoundingClientRect().height) : 0
+      };
+    })()`);
+    check('榜单面板可切换且已渲染出条目', rank.panelOn && rank.rows >= 10, `on=${rank.panelOn} rows=${rank.rows}`);
+    check('已匹配仓库的榜单行是可点击的 GitHub 链接', rank.links >= 10 && rank.allGithub, `links=${rank.links} allGithub=${rank.allGithub}`);
+    check('榜单外链新开标签且带 noopener', rank.blank && rank.noopener, `blank=${rank.blank} noopener=${rank.noopener}`);
+    check('状态点显示「实时/缓存」并给出更新时间与在榜数', /实时|缓存/.test(rank.state) && /在榜项目/.test(rank.meta), `state=${rank.state} meta=${rank.meta}`);
+    check('提供「刷新」按钮', rank.hasRefresh, 'hasRefresh=' + rank.hasRefresh);
+    check('「原始榜单」指向比赛仓库的 RANKING.md', /M-China\/mcd-developer-innovation-challenge\/blob\/main\/RANKING\.md/.test(rank.srcHref), rank.srcHref);
+    check('「我在哪」区域给出名次/星数/门槛', /当前名次|未进榜/.test(rank.mine) && /星数/.test(rank.mine) && /进榜门槛/.test(rank.mine), rank.mine.replace(/\s+/g, ' ').slice(0, 80));
+    check('「我在哪」给出本项目仓库直链', /^https:\/\/github\.com\/zhangjunzhe349-coder\/mcpet$/.test(rank.mineHref), rank.mineHref);
+    check('诚实说明数据出处与离线兜底（不编造）', /RANKING\.md/.test(rank.disc) && /离线兜底/.test(rank.disc) && /不猜、不编造/.test(rank.disc), rank.disc.replace(/\s+/g, ' ').slice(0, 90));
+    check('榜单行高点击友好（≥40px）', rank.rowH >= 40, 'h=' + rank.rowH);
+    if (/实时/.test(rank.state)) check('拿到实时数据后写入本地缓存', rank.cached, 'cached=' + rank.cached);
+    else check('离线时用内置快照兜底（不空白）', rank.rows >= 10, `rows=${rank.rows}（快照兜底）`);
+
+    console.log('\n【14】手机端适配（390×844）');
     await cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 3, mobile: true });
     await sleep(450);
     await cdp.ev(`document.querySelectorAll('.tab')[0].click()`);
@@ -479,7 +566,10 @@ async function waitReady(cdp, timeoutLoops = 60) {
         itemH: Math.round(kb.getBoundingClientRect().height),
         appBottomGap: Math.round(de.clientHeight - document.querySelector('.tabs').getBoundingClientRect().top),
         searchFont: parseFloat(getComputedStyle(document.getElementById('search')).fontSize),
-        feedBtnH: Math.round(document.getElementById('feedBtn').getBoundingClientRect().height)
+        feedBtnH: Math.round(document.getElementById('feedBtn').getBoundingClientRect().height),
+        petCss: Math.round(document.getElementById('pet').getBoundingClientRect().width),
+        stageH: Math.round(document.querySelector('.stage').getBoundingClientRect().height),
+        viewH: de.clientHeight
       };
     })()`);
     check('无横向溢出', m.overflowX <= 1, 'overflowX=' + m.overflowX);
@@ -488,12 +578,14 @@ async function waitReady(cdp, timeoutLoops = 60) {
     check('触摸目标 ≥44px', m.tabH >= 44 && m.itemH >= 44, `tab=${m.tabH} item=${m.itemH}`);
     check('喂食主按钮 ≥44px', m.feedBtnH >= 44, 'h=' + m.feedBtnH);
     check('搜索框字号 ≥16px（防 iOS 缩放）', m.searchFont >= 16, m.searchFont + 'px');
+    check('手机端宠物已缩小为副产品体量（≤150px）', m.petCss > 0 && m.petCss <= 150, 'pet=' + m.petCss + 'px');
+    check('手机端宠物区不占据首屏（≤45vh）', m.stageH > 0 && m.stageH <= m.viewH * 0.45, `${m.stageH}px / ${m.viewH}px`);
 
     /* =========================================================
-       【14】桌面端适配（≥1024px 双栏工作台）
+       【15】桌面端适配（≥1024px 双栏工作台）
        手机端布局与这里无关，各自独立断言，互不牵连。
        ========================================================= */
-    console.log('\n【14】桌面端适配（1280×900 / 1440×900）');
+    console.log('\n【15】桌面端适配（1280×900 / 1440×900）');
     for (const [vw, vh] of [[1280, 900], [1440, 900]]) {
       await cdp.send('Emulation.setDeviceMetricsOverride', { width: vw, height: vh, deviceScaleFactor: 1, mobile: false });
       await sleep(400);
@@ -596,8 +688,8 @@ async function waitReady(cdp, timeoutLoops = 60) {
     await cdp.ev(`document.querySelectorAll('.tab')[0].click(); window.scrollTo(0,0)`);
     await sleep(250);
 
-    console.log('\n【15】截图');
-    await cdp.ev(`window.scrollTo(0,0)`);
+    console.log('\n【16】截图');
+    await cdp.ev(`window.scrollTo(0,0); document.querySelectorAll('.tab')[0].click()`);
     await sleep(350);
     const shotMobile = await cdp.send('Page.captureScreenshot', {
       format: 'png', captureBeyondViewport: true,
@@ -636,6 +728,13 @@ async function waitReady(cdp, timeoutLoops = 60) {
     fs.writeFileSync(path.join(outDir, `screenshot-today${SUFFIX}.png`), Buffer.from(shotToday.result.data, 'base64'));
     check('今日营养面板截图已保存', true, `assets/screenshot-today${SUFFIX}.png`);
 
+    /* 榜单面板（本轮新增的实时榜单） */
+    await cdp.ev(`window.scrollTo(0,0); document.querySelectorAll('.tab')[4].click()`);
+    await sleep(350);
+    const shotRank = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
+    fs.writeFileSync(path.join(outDir, `screenshot-rank${SUFFIX}.png`), Buffer.from(shotRank.result.data, 'base64'));
+    check('榜单面板截图已保存', true, `assets/screenshot-rank${SUFFIX}.png`);
+
     /* 桌面端：默认「喂麦麦」双栏工作台（全页截，方便直接当 README 配图） */
     await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
     await sleep(450);
@@ -665,7 +764,7 @@ async function waitReady(cdp, timeoutLoops = 60) {
 
     await cdp.send('Emulation.clearDeviceMetricsOverride');
 
-    console.log('\n【16】交互后异常复查');
+    console.log('\n【17】交互后异常复查');
     check('交互全过程无未捕获异常', cdp.exceptions.length === 0, cdp.exceptions.slice(0, 3).join(' | '));
     check('交互全过程无 console.error', cdp.consoleErrors.length === 0, cdp.consoleErrors.slice(0, 3).join(' | '));
 

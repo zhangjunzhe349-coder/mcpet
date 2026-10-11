@@ -31,6 +31,18 @@ docs/诊断-*.md
 
 # 榜单/同行调研中间数据（抓取产物，本地研究用）
 _rank*.md
+_rk.md
+_rk.json
 _ranked*.json
 _issues*.json
 _repo_*.json
+_name2repo.json
+_menu_raw.txt
+_menu_err.txt
+
+# 本机调试草稿（裁图 / 语法自检 / 图标单测，都是临时产物）
+_crop_*.png
+_m[0-9].png
+_t[0-9].*
+_t_*.js
+_syntax_check.js

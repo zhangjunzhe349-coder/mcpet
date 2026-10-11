@@ -1,0 +1,330 @@
+{
+ "source": "麦当劳中国官方点餐菜单（MCP query-meals / menu-img.mcd.cn）",
+ "store": "1420576",
+ "storeName": "1420576",
+ "fetched_at": "2026-10-11 23:42:42",
+ "count": 64,
+ "total_items": 158,
+ "photos": {
+  "中薯条": {
+   "src": "assets/food/中薯条.webp",
+   "from": "薯条",
+   "how": "stripped"
+  },
+  "大薯条": {
+   "src": "assets/food/中薯条.webp",
+   "from": "薯条",
+   "how": "stripped"
+  },
+  "小薯条": {
+   "src": "assets/food/中薯条.webp",
+   "from": "薯条",
+   "how": "stripped"
+  },
+  "迷你薯条": {
+   "src": "assets/food/中薯条.webp",
+   "from": "薯条",
+   "how": "stripped"
+  },
+  "圆筒冰淇淋": {
+   "src": "assets/food/圆筒冰淇淋.webp",
+   "from": "圆筒冰淇淋",
+   "how": "exact"
+  },
+  "麦乐鸡5块": {
+   "src": "assets/food/麦乐鸡5块.webp",
+   "from": "麦乐鸡",
+   "how": "stripped"
+  },
+  "大杯玉米杯": {
+   "src": "assets/food/大杯玉米杯.webp",
+   "from": "玉米杯",
+   "how": "stripped"
+  },
+  "小杯玉米杯": {
+   "src": "assets/food/大杯玉米杯.webp",
+   "from": "玉米杯",
+   "how": "stripped"
+  },
+  "麦辣鸡翅-2块": {
+   "src": "assets/food/麦辣鸡翅2块.webp",
+   "from": "麦辣鸡翅",
+   "how": "alias"
+  },
+  "朱古力新地": {
+   "src": "assets/food/朱古力新地.webp",
+   "from": "新地",
+   "how": "alias"
+  },
+  "草莓新地": {
+   "src": "assets/food/朱古力新地.webp",
+   "from": "新地",
+   "how": "alias"
+  },
+  "奥利奥麦旋风": {
+   "src": "assets/food/奥利奥麦旋风.webp",
+   "from": "经典麦旋风",
+   "how": "alias"
+  },
+  "草莓麦旋风": {
+   "src": "assets/food/奥利奥麦旋风.webp",
+   "from": "经典麦旋风",
+   "how": "alias"
+  },
+  "香芋派": {
+   "src": "assets/food/香芋派.webp",
+   "from": "派",
+   "how": "alias"
+  },
+  "菠萝派": {
+   "src": "assets/food/香芋派.webp",
+   "from": "派",
+   "how": "alias"
+  },
+  "双层吉士汉堡": {
+   "src": "assets/food/双层吉士汉堡.webp",
+   "from": "双层吉士汉堡",
+   "how": "exact"
+  },
+  "麦香鸡": {
+   "src": "assets/food/麦香鸡.webp",
+   "from": "麦香鸡",
+   "how": "exact"
+  },
+  "麦香鱼": {
+   "src": "assets/food/麦香鱼.webp",
+   "from": "麦香鱼",
+   "how": "exact"
+  },
+  "麦辣鸡腿汉堡": {
+   "src": "assets/food/麦辣鸡腿汉堡.webp",
+   "from": "麦辣鸡腿汉堡",
+   "how": "exact"
+  },
+  "板烧鸡腿堡": {
+   "src": "assets/food/板烧鸡腿堡.webp",
+   "from": "板烧鸡腿堡",
+   "how": "exact"
+  },
+  "巨无霸": {
+   "src": "assets/food/巨无霸.webp",
+   "from": "巨无霸",
+   "how": "exact"
+  },
+  "培根蔬萃双层牛堡": {
+   "src": "assets/food/培根蔬萃双层牛堡.webp",
+   "from": "培根蔬萃双层牛堡",
+   "how": "exact"
+  },
+  "可乐中杯": {
+   "src": "assets/food/可乐中杯.webp",
+   "from": "可乐",
+   "how": "stripped"
+  },
+  "可乐大杯": {
+   "src": "assets/food/可乐中杯.webp",
+   "from": "可乐",
+   "how": "stripped"
+  },
+  "可乐小杯": {
+   "src": "assets/food/可乐中杯.webp",
+   "from": "可乐",
+   "how": "stripped"
+  },
+  "雪碧中杯": {
+   "src": "assets/food/雪碧中杯.webp",
+   "from": "雪碧",
+   "how": "stripped"
+  },
+  "雪碧大杯": {
+   "src": "assets/food/雪碧中杯.webp",
+   "from": "雪碧",
+   "how": "stripped"
+  },
+  "雪碧小杯": {
+   "src": "assets/food/雪碧中杯.webp",
+   "from": "雪碧",
+   "how": "stripped"
+  },
+  "大杯鲜萃咖啡": {
+   "src": "assets/food/大杯鲜萃咖啡.webp",
+   "from": "鲜萃咖啡",
+   "how": "alias"
+  },
+  "小杯鲜萃咖啡": {
+   "src": "assets/food/大杯鲜萃咖啡.webp",
+   "from": "鲜萃咖啡",
+   "how": "alias"
+  },
+  "锡兰红茶": {
+   "src": "assets/food/锡兰红茶.webp",
+   "from": "锡兰红茶",
+   "how": "exact"
+  },
+  "纯牛奶（盒装）": {
+   "src": "assets/food/纯牛奶盒装.webp",
+   "from": "纯牛奶(盒装)",
+   "how": "exact"
+  },
+  "麦旋酷阳光橙": {
+   "src": "assets/food/麦旋酷阳光橙.webp",
+   "from": "【美汁源】“黄金橙橙”",
+   "how": "alias"
+  },
+  "浓缩咖啡": {
+   "src": "assets/food/大杯鲜萃咖啡.webp",
+   "from": "鲜萃咖啡",
+   "how": "alias"
+  },
+  "那么大鸡排": {
+   "src": "assets/food/那么大鸡排.webp",
+   "from": "那么大鸡排（椒盐风味）",
+   "how": "alias"
+  },
+  "阳光柠檬红茶中杯": {
+   "src": "assets/food/阳光柠檬红茶中杯.webp",
+   "from": "阳光柠檬红茶",
+   "how": "stripped"
+  },
+  "阳光柠檬红茶大杯": {
+   "src": "assets/food/阳光柠檬红茶中杯.webp",
+   "from": "阳光柠檬红茶",
+   "how": "stripped"
+  },
+  "阳光柠檬红茶小杯": {
+   "src": "assets/food/阳光柠檬红茶中杯.webp",
+   "from": "阳光柠檬红茶",
+   "how": "stripped"
+  },
+  "脆薯饼": {
+   "src": "assets/food/脆薯饼.webp",
+   "from": "脆薯饼",
+   "how": "exact"
+  },
+  "100%苹果汁": {
+   "src": "assets/food/100苹果汁.webp",
+   "from": "100% 苹果汁(盒装)",
+   "how": "alias"
+  },
+  "汉堡包": {
+   "src": "assets/food/汉堡包.webp",
+   "from": "汉堡开心乐园餐",
+   "how": "alias"
+  },
+  "麦乐鸡4块": {
+   "src": "assets/food/麦乐鸡5块.webp",
+   "from": "麦乐鸡",
+   "how": "stripped"
+  },
+  "纯悦": {
+   "src": "assets/food/纯悦.webp",
+   "from": "纯悦",
+   "how": "exact"
+  },
+  "不素之霸双层牛堡": {
+   "src": "assets/food/不素之霸双层牛堡.webp",
+   "from": "不素之霸双层牛堡",
+   "how": "exact"
+  },
+  "双层深海鳕鱼堡": {
+   "src": "assets/food/双层深海鳕鱼堡.webp",
+   "from": "双层深海鳕鱼堡",
+   "how": "exact"
+  },
+  "儿童鱼排堡": {
+   "src": "assets/food/儿童鱼排堡.webp",
+   "from": "鱼排堡开心乐园餐",
+   "how": "alias"
+  },
+  "培根安格斯厚牛堡": {
+   "src": "assets/food/培根安格斯厚牛堡.webp",
+   "from": "培根安格斯厚牛堡",
+   "how": "exact"
+  },
+  "芝士安格斯厚牛堡": {
+   "src": "assets/food/芝士安格斯厚牛堡.webp",
+   "from": "芝士安格斯厚牛堡",
+   "how": "exact"
+  },
+  "麦麦脆汁鸡-琵琶腿": {
+   "src": "assets/food/麦麦脆汁鸡琵琶腿.webp",
+   "from": "麦麦脆汁鸡1块",
+   "how": "alias"
+  },
+  "麦麦脆汁鸡-带骨里脊": {
+   "src": "assets/food/麦麦脆汁鸡琵琶腿.webp",
+   "from": "麦麦脆汁鸡1块",
+   "how": "alias"
+  },
+  "【美汁源】“黄金橙橙”": {
+   "src": "assets/food/麦旋酷阳光橙.webp",
+   "from": "【美汁源】“黄金橙橙”",
+   "how": "exact"
+  },
+  "脆脆薯条": {
+   "src": "assets/food/中薯条.webp",
+   "from": "薯条",
+   "how": "alias"
+  },
+  "酥酥多笋卷": {
+   "src": "assets/food/酥酥多笋卷.webp",
+   "from": "酥酥多笋卷",
+   "how": "exact"
+  },
+  "薄皮焦香V翅": {
+   "src": "assets/food/薄皮焦香v翅.webp",
+   "from": "薄皮焦香V翅",
+   "how": "exact"
+  },
+  "蜜汁BBQ风味薄皮脆汁鸡-带骨里脊": {
+   "src": "assets/food/麦麦脆汁鸡琵琶腿.webp",
+   "from": "麦麦脆汁鸡1块",
+   "how": "alias"
+  },
+  "蜜汁BBQ风味薄皮脆汁鸡-琵琶腿": {
+   "src": "assets/food/麦麦脆汁鸡琵琶腿.webp",
+   "from": "麦麦脆汁鸡1块",
+   "how": "alias"
+  },
+  "绝代双翅": {
+   "src": "assets/food/麦辣鸡翅2块.webp",
+   "from": "麦辣鸡翅",
+   "how": "alias"
+  },
+  "迷你朱古力新地": {
+   "src": "assets/food/朱古力新地.webp",
+   "from": "新地",
+   "how": "alias"
+  },
+  "迷你草莓新地": {
+   "src": "assets/food/朱古力新地.webp",
+   "from": "新地",
+   "how": "alias"
+  },
+  "中杯怡泉+C": {
+   "src": "assets/food/中杯怡泉c.webp",
+   "from": "怡泉+C",
+   "how": "alias"
+  },
+  "大杯怡泉+C": {
+   "src": "assets/food/中杯怡泉c.webp",
+   "from": "怡泉+C",
+   "how": "alias"
+  },
+  "蒜了吧黄油风味薄皮脆汁鸡-琵琶腿": {
+   "src": "assets/food/麦麦脆汁鸡琵琶腿.webp",
+   "from": "麦麦脆汁鸡1块",
+   "how": "alias"
+  },
+  "蒜了吧黄油风味薄皮脆汁鸡-带骨里脊": {
+   "src": "assets/food/麦麦脆汁鸡琵琶腿.webp",
+   "from": "麦麦脆汁鸡1块",
+   "how": "alias"
+  },
+  "柠萌风味薄皮焦香V翅": {
+   "src": "assets/food/薄皮焦香v翅.webp",
+   "from": "薄皮焦香V翅",
+   "how": "alias"
+  }
+ }
+}

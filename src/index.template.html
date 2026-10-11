@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="麦麦宠物 McPet —— 点麦当劳就是喂宠物。用麦当劳官方 MCP 的真实营养数据，把每一餐变成一次养成：宠物会随你的饮食习惯长胖、变匀称，还会饿。">
+<meta name="description" content="麦麦营养账本 —— 记录你吃的每一顿麦当劳。内置官方 MCP 的 158 款餐品真实营养数据与官方白底图，选一餐就出热量、蛋白、脂肪、钠、钙与 0-100 健康分，并对照《中国居民膳食指南》算今日额度。养一只会跟着你饮食变化的麦麦，只是附带的一点趣味。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23FFC72C'/%3E%3Crect x='11' y='5' width='10' height='22' rx='5' fill='%233A2A16'/%3E%3Crect x='6' y='10' width='4' height='12' rx='2' fill='%23D99400'/%3E%3Crect x='22' y='10' width='4' height='12' rx='2' fill='%23D99400'/%3E%3C/svg%3E">
-<title>麦麦宠物 McPet · 点麦当劳就是喂宠物</title>
+<title>麦麦营养账本 · 记录每一顿麦当劳的热量与营养</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
@@ -42,11 +42,14 @@ body{
 
 /* ---------- 宠物舞台 ---------- */
 .stage{
-  position:relative;margin:2px 16px 14px;border-radius:22px;overflow:hidden;
+  position:relative;margin:2px 16px 12px;border-radius:22px;overflow:hidden;
   background:
     radial-gradient(circle at 50% 118%, #FFE9A8 0%, #FFF3D2 42%, #FFFBF0 100%);
   border:1px solid #F0E2C8;
-  padding:16px 16px 14px;
+  padding:12px 14px 11px;
+  /* 宠物只当副产品：手机上不做主角，画布缩到 128px；
+     --petk 是相对 200px 基准画布的缩放比，投喂动画的坐标全跟着它走 */
+  --pets:128px;--petk:.64;--fls:32px;
 }
 .stage::before{
   content:"";position:absolute;inset:0;
@@ -72,13 +75,18 @@ body{
   font-style:normal;width:16px;height:16px;border-radius:50%;background:#FFC72C;color:#3A2A16;
   font-size:10px;font-weight:600;display:grid;place-items:center;flex:0 0 auto;
 }
-.petwrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px}#pet{image-rendering:pixelated;display:block;filter:drop-shadow(0 6px 0 rgba(58,42,22,.07))}
-.petname{font-size:13px;font-weight:600;letter-spacing:.3px}
-.petname span{font-weight:400;color:#9C8B76;font-size:11px;margin-left:6px}
+.petwrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px}
+#pet{width:var(--pets,200px);height:var(--pets,200px);image-rendering:pixelated;display:block;filter:drop-shadow(0 6px 0 rgba(58,42,22,.07))}
+.petname{font-size:13px;font-weight:600;letter-spacing:.3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center}
+.petname span{font-weight:400;color:#9C8B76;font-size:11px;margin-left:0}
+.petrole{
+  font-size:10px!important;font-weight:600!important;color:#8A6B14!important;
+  background:#FFF3D2;border:1px solid #F0DFA8;border-radius:999px;padding:1px 7px;
+}
 .bubble{
   position:relative;background:#FFFFFF;border:1px solid #EADCC4;border-radius:14px;
-  padding:9px 13px;font-size:13px;max-width:300px;text-align:center;
-  box-shadow:0 2px 0 rgba(58,42,22,.04);min-height:38px;display:grid;place-items:center;
+  padding:8px 12px;font-size:12.5px;max-width:280px;text-align:center;
+  box-shadow:0 2px 0 rgba(58,42,22,.04);min-height:36px;display:grid;place-items:center;
   transition:transform .18s ease;
 }
 .bubble.pop{transform:scale(1.04)}
@@ -90,22 +98,27 @@ body{
 /* ---------- 投喂：餐品从下方抛入、飞进宠物嘴里 ----------
    坐标以 .petwrap 为基准：画布是第一子元素，宠物嘴在 y≈105px 处 */
 .feedlayer{position:absolute;inset:0;pointer-events:none;z-index:6}
-.flyitem{position:absolute;left:50%;top:108px;width:46px;height:46px;margin:-23px 0 0 -23px;opacity:0;filter:drop-shadow(0 3px 2px rgba(58,42,22,.2))}
+.flyitem{
+  position:absolute;left:50%;top:calc(108px*var(--petk,1));
+  width:var(--fls,46px);height:var(--fls,46px);
+  margin:calc(var(--fls,46px) / -2) 0 0 calc(var(--fls,46px) / -2);
+  opacity:0;filter:drop-shadow(0 3px 2px rgba(58,42,22,.2));
+}
 .flyitem svg{width:100%;height:100%;display:block}
 .flyitem.go{animation:feedarc .7s cubic-bezier(.34,.02,.3,1) forwards}
 @keyframes feedarc{
-  0%  {opacity:0;transform:translate(var(--ox,0px),96px) scale(.5) rotate(-22deg)}
+  0%  {opacity:0;transform:translate(var(--ox,0px),calc(96px*var(--petk,1))) scale(.5) rotate(-22deg)}
   16% {opacity:1}
-  44% {transform:translate(calc(var(--ox,0px)*.5),16px) scale(1.1) rotate(14deg)}
-  72% {opacity:1;transform:translate(0,4px) scale(.78) rotate(-4deg)}
-  100%{opacity:0;transform:translate(0,9px) scale(.05) rotate(6deg)}
+  44% {transform:translate(calc(var(--ox,0px)*.5),calc(16px*var(--petk,1))) scale(1.1) rotate(14deg)}
+  72% {opacity:1;transform:translate(0,calc(4px*var(--petk,1))) scale(.78) rotate(-4deg)}
+  100%{opacity:0;transform:translate(0,calc(9px*var(--petk,1))) scale(.05) rotate(6deg)}
 }
-.flykcal{position:absolute;left:50%;top:58px;font-size:12px;font-weight:600;color:#B32216;background:#FFF3D2;border:1px solid #F0DFA8;border-radius:999px;padding:2px 9px;white-space:nowrap;opacity:0;pointer-events:none}
+.flykcal{position:absolute;left:50%;top:calc(58px*var(--petk,1));font-size:12px;font-weight:600;color:#B32216;background:#FFF3D2;border:1px solid #F0DFA8;border-radius:999px;padding:2px 9px;white-space:nowrap;opacity:0;pointer-events:none}
 .flykcal.go{animation:kcalup 1s ease-out forwards}
 @keyframes kcalup{
   0%  {opacity:0;transform:translate(-50%,0) scale(.7)}
-  22% {opacity:1;transform:translate(-50%,-6px) scale(1)}
-  100%{opacity:0;transform:translate(-50%,-52px) scale(.92)}
+  22% {opacity:1;transform:translate(-50%,calc(-6px*var(--petk,1))) scale(1)}
+  100%{opacity:0;transform:translate(-50%,calc(-52px*var(--petk,1))) scale(.92)}
 }
 .petwrap.gulp #pet{animation:gulp .34s ease}
 @keyframes gulp{
@@ -174,10 +187,19 @@ main{padding:0 16px}
 .item:hover{border-color:#FFC72C;box-shadow:0 3px 0 rgba(255,199,44,.22)}
 .item.picked{border-color:#D99400;background:#FFFBEE;box-shadow:0 0 0 2px rgba(255,199,44,.35) inset}
 .item .ic{
-  flex:0 0 38px;width:38px;height:38px;border-radius:12px;
+  flex:0 0 40px;width:40px;height:40px;border-radius:12px;
   background:#FFF6E2;border:1px solid #F2E3C4;display:grid;place-items:center;
 }
-.item .ic svg{width:32px;height:32px;display:block}
+.item .ic .fp{
+  width:calc(30px*var(--s,1));height:calc(30px*var(--s,1));object-fit:contain;
+  display:block;border-radius:6px;
+}
+.item .ic .fdr{display:none}
+.item .ic .fdr svg{width:calc(32px*var(--s,1));height:calc(32px*var(--s,1));display:block}
+.item .ic.nop .fp{display:none}
+.item .ic.nop .fdr{display:block}
+/* 官方实拍图自带白底：把图格也改成白底，避免「白图叠米底」的双层方框 */
+.item .ic:not(.nop){background:#fff;border-color:#EFE7DA}
 .item .col{flex:1;min-width:0}
 .item .nm{
   font-size:12.5px;font-weight:600;line-height:1.32;display:-webkit-box;
@@ -191,9 +213,12 @@ main{padding:0 16px}
 .item .bar i{display:block;height:100%;border-radius:2px}
 .item.picked .ic{background:#FFF0C9;border-color:#EBCF86}
 #nName{display:inline-flex;align-items:center;gap:5px;vertical-align:middle}
-#nName .ni{width:18px;height:18px;display:inline-block;vertical-align:middle;flex:0 0 auto}
-#nName .ni svg{width:18px;height:18px;display:block}
-#nName .ni + .ni{margin-left:-8px}
+#nName .ni{width:20px;height:20px;display:grid;place-items:center;flex:0 0 auto}
+#nName .ni svg{width:20px;height:20px;display:block}
+#nName .ni img{width:20px;height:20px;object-fit:contain;display:block;border-radius:5px}
+#nName .ni.nop img{display:none}
+#nName .ni:not(.nop) svg{display:none}
+#nName .ni + .ni{margin-left:-9px}
 .empty{text-align:center;padding:26px 10px;color:#9C8B76;font-size:12.5px}
 .morebtn{
   width:100%;margin-top:10px;border:1px dashed #DCCBB0;background:transparent;border-radius:12px;
@@ -206,8 +231,11 @@ main{padding:0 16px}
 .baskethead small{font-weight:400;color:#9C8B76;font-size:11px}
 .bchips{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0 2px}
 .bchip{display:inline-flex;align-items:center;gap:5px;background:#FFFFFF;border:1px solid #F0DFA8;border-radius:999px;padding:3px 5px 3px 7px;font-size:11.5px;color:#5B4A35}
-.bchip .icv{flex:0 0 17px;width:17px;height:17px;display:grid;place-items:center}
-.bchip .icv svg{width:17px;height:17px;display:block}
+.bchip .icv{flex:0 0 18px;width:18px;height:18px;display:grid;place-items:center}
+.bchip .icv svg{width:18px;height:18px;display:block}
+.bchip .icv img{width:18px;height:18px;object-fit:contain;display:block;border-radius:4px}
+.bchip .icv.nop img{display:none}
+.bchip .icv:not(.nop) svg{display:none}
 .bchip b{font-weight:600}
 .bchip em{font-style:normal;color:#9C8B76;font-size:10.5px}
 .bx{border:0;background:#F0E2C8;color:#7A6A53;width:17px;height:17px;border-radius:50%;font-size:12px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
@@ -307,17 +335,7 @@ main{padding:0 16px}
 .cardstat span{display:block;font-size:10.5px;color:#9C8B76}
 .cardstat b{font-size:12.5px}
 
-/* ---------- 更多 / MCP ---------- */
-.mcp{display:grid;gap:9px}
-.mcpcard{border:1px solid #EADCC4;background:#FFFDF8;border-radius:14px;padding:12px}
-.mcpcard .hd{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
-.mcpcard .hd i{font-style:normal;font-size:16px}
-.mcpcard p{margin:6px 0 9px;font-size:11.5px;color:#8A7B6B}
-.mcpcard code{
-  display:block;background:#F7F1E6;border:1px solid #EBDFC9;border-radius:9px;padding:8px 10px;
-  font-size:11px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#5B4A35;
-  word-break:break-all;line-height:1.5;
-}
+/* ---------- 按钮与输入 ---------- */
 .acts{display:flex;gap:7px;margin-top:9px}
 .btn{
   border:0;border-radius:10px;padding:8px 13px;font-size:12px;font-family:inherit;cursor:pointer;
@@ -333,6 +351,11 @@ textarea.imp{
   color:#3A2A16;outline:none;resize:vertical;line-height:1.5;
 }
 textarea.imp:focus{border-color:#FFC72C}
+details.tuck>summary{cursor:pointer;font-size:12px;color:#8A7B6B;list-style:none;display:flex;align-items:center;gap:6px}
+details.tuck>summary::-webkit-details-marker{display:none}
+details.tuck>summary::after{content:'＋';margin-left:auto;color:#B3A48F;font-size:13px}
+details.tuck[open]>summary::after{content:'－'}
+details.tuck>summary:hover{color:#3A2A16}
 .report{margin-top:11px;border-top:1px dashed #EADCC4;padding-top:11px}
 .report .rsum{display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px;gap:10px}
 .report .rlist{display:grid;gap:6px;max-height:210px;overflow:auto}
@@ -341,6 +364,59 @@ textarea.imp:focus{border-color:#FFC72C}
 
 footer{padding:14px 16px 22px;text-align:center;font-size:10.5px;color:#B3A48F;line-height:1.7}
 footer a{color:#8A7B6B}
+
+/* ---------- 实时榜单 ---------- */
+.rankbar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:11.5px;color:#7A6A53}
+.rkdot{width:7px;height:7px;border-radius:50%;background:#B3A48F;flex:0 0 auto}
+.rkdot.live{background:#2E9E63;box-shadow:0 0 0 3px rgba(46,158,99,.16)}
+.rkdot.cache{background:#E8B23A;box-shadow:0 0 0 3px rgba(232,178,58,.18)}
+.rkdot.dead{background:#DA291C;box-shadow:0 0 0 3px rgba(218,41,28,.14)}
+.rkbar b{font-weight:600;color:#3A2A16;font-variant-numeric:tabular-nums}
+.rklist{border:1px solid #EADCC4;border-radius:12px;overflow:hidden;margin-top:10px;background:#FFFDF8}
+.rkrow{
+  display:grid;grid-template-columns:30px minmax(0,1fr) auto;align-items:center;
+  column-gap:8px;padding:9px 11px;min-height:42px;border-bottom:1px solid #F4EBDC;
+  font-size:12.5px;text-decoration:none;color:inherit;transition:background .12s;
+}
+.rkrow:last-child{border-bottom:0}
+a.rkrow:hover{background:#FFF6E2}
+a.rkrow:active{background:#FFEFCC}
+.rkrow .n{color:#B3A48F;font-size:11.5px;text-align:right;font-variant-numeric:tabular-nums}
+.rkrow .nm{
+  font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  display:flex;align-items:center;gap:5px;min-width:0;
+}
+.rkrow .nm i{font-style:normal;font-size:9.5px;font-weight:600;color:#8A6B14;background:#FFE9A8;border-radius:4px;padding:1px 4px;flex:0 0 auto}
+.rkrow .st{
+  font-weight:600;color:#B32216;font-variant-numeric:tabular-nums;flex:0 0 auto;
+}
+.rkrow .st em{font-style:normal;font-size:9.5px;color:#C0A98C;margin-left:2px}
+.rkrow.me{background:#FFF7DC}
+.rkrow.nolink{color:#9C8B76}
+.rkmore{
+  width:100%;border:0;border-top:1px solid #F4EBDC;background:#FFFCF3;border-radius:0;
+  padding:9px;font-size:12px;color:#8A7B6B;cursor:pointer;font-family:inherit;
+}
+.rkmore:hover{background:#FFF6E2}
+.rkfoot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:9px;font-size:11px;color:#A2927C}
+.rklinks{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  margin-top:10px;padding-top:9px;border-top:1px dashed #EADCC4;font-size:11.5px;color:#A2927C;
+}
+.rklinks a{color:#B32216;font-weight:600;text-decoration:none}
+.rklinks a:hover{text-decoration:underline}
+.rklinks code{font-size:11px;background:#F7EEE0;border-radius:4px;padding:1px 4px}
+.rkfoot a{color:#8A7B6B}
+
+/* ---------- 官方图出处 ---------- */
+.photobar{
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  font-size:10.5px;color:#A2927C;margin-top:8px;
+}
+.photobar .sw{display:inline-flex;align-items:center;gap:4px}
+.photobar .sw i{width:9px;height:9px;border-radius:3px;display:inline-block;font-style:normal}
+.sw-o i{background:#FFC72C}
+.sw-h i{background:#E8D9C0}
 .toast{
   position:fixed;left:50%;bottom:96px;transform:translate(-50%,10px);z-index:60;
   background:#3A2A16;color:#FFF3D2;font-size:12px;padding:9px 16px;border-radius:999px;
@@ -350,7 +426,7 @@ footer a{color:#8A7B6B}
 
 /* 移动端：输入框字号必须 >=16px，否则 iOS 聚焦时会自动放大整页 */
 @media(max-width:520px){
-  #panel-feed .search, #panel-pet .nameinput, #panel-more textarea.imp{font-size:16px}
+  #panel-feed .search, #panel-pet .nameinput, #panel-today textarea.imp{font-size:16px}
   #panel-feed .search{padding:11px 13px}
 }
 
@@ -416,6 +492,7 @@ footer a{color:#8A7B6B}
     grid-column:1;margin:0;position:sticky;top:76px;
     min-height:calc(100vh - 190px);
     display:flex;flex-direction:column;justify-content:center;
+    --pets:200px;--petk:1;--fls:46px;
   }
   main{grid-column:2;padding:0}
   footer{grid-column:1/-1;padding:22px 0 8px;margin-top:30px}
@@ -425,6 +502,7 @@ footer a{color:#8A7B6B}
   .panel.on .card{margin:0}
   .panel.on .disclose{grid-column:1/-1;margin:0}
   #panel-feed .card{grid-column:1/-1}   /* 篮子与挑餐品都是宽内容，占满整行 */
+  #panel-rank .card:first-child{grid-column:1/-1}  /* 榜表单行更宽，占满整行 */
 
   /* ---------- 桌面端密度与字号 ---------- */
   .grid{grid-template-columns:repeat(3,1fr)}
@@ -439,12 +517,41 @@ footer a{color:#8A7B6B}
 </style>
 </head>
 <body>
+<!-- 全站共用的渐变定义：手绘食物图标靠它做出「拟态」的立体感。
+     ⚠️ 集中定义一次（而不是每个图标各带一份 <defs>），避免重复 id 互相覆盖。 -->
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+  <defs>
+    <linearGradient id="gBun" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7D48C"/><stop offset="1" stop-color="#DFA451"/></linearGradient>
+    <linearGradient id="gBunFlat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2DCB4"/><stop offset="1" stop-color="#D8BA85"/></linearGradient>
+    <linearGradient id="gPatty" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7E4E2B"/><stop offset="1" stop-color="#54321A"/></linearGradient>
+    <linearGradient id="gMeat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EEB55E"/><stop offset="1" stop-color="#C57E22"/></linearGradient>
+    <linearGradient id="gCheese" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFDC63"/><stop offset="1" stop-color="#EFAE18"/></linearGradient>
+    <linearGradient id="gFry" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE07A"/><stop offset="1" stop-color="#F0A81E"/></linearGradient>
+    <linearGradient id="gBox" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EA3A24"/><stop offset="1" stop-color="#AE1608"/></linearGradient>
+    <linearGradient id="gCup" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#FBF6EE"/><stop offset="1" stop-color="#E4DACB"/></linearGradient>
+    <linearGradient id="gLid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EE4230"/><stop offset="1" stop-color="#B01A0C"/></linearGradient>
+    <linearGradient id="gCola" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7A4520"/><stop offset="1" stop-color="#33190A"/></linearGradient>
+    <linearGradient id="gIce" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2F8FC"/><stop offset="1" stop-color="#C9DAE6"/></linearGradient>
+    <linearGradient id="gCone" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EDCD96"/><stop offset="1" stop-color="#C39A5C"/></linearGradient>
+    <linearGradient id="gChoco" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6E4122"/><stop offset="1" stop-color="#371D0C"/></linearGradient>
+    <linearGradient id="gTea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B8763D"/><stop offset="1" stop-color="#7A4A20"/></linearGradient>
+    <linearGradient id="gMatcha" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9CCB5C"/><stop offset="1" stop-color="#5E9430"/></linearGradient>
+    <linearGradient id="gOat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2E4CB"/><stop offset="1" stop-color="#D3BB94"/></linearGradient>
+    <linearGradient id="gCream" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFDF8"/><stop offset="1" stop-color="#E6DCCC"/></linearGradient>
+    <linearGradient id="gBerry" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2799A"/><stop offset="1" stop-color="#CE3F68"/></linearGradient>
+    <linearGradient id="gPie" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7D08A"/><stop offset="1" stop-color="#DCA755"/></linearGradient>
+    <linearGradient id="gPotato" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F0C070"/><stop offset="1" stop-color="#C98A2E"/></linearGradient>
+    <linearGradient id="gPurple" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A98BD6"/><stop offset="1" stop-color="#6F51A3"/></linearGradient>
+    <linearGradient id="gRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EE5A50"/><stop offset="1" stop-color="#B9281E"/></linearGradient>
+    <linearGradient id="gGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8CCE58"/><stop offset="1" stop-color="#4E9A32"/></linearGradient>
+  </defs>
+</svg>
 <div class="app">
 
   <header class="top">
     <div class="brand">
       <span class="mark">M</span>
-      <div>麦麦宠物<small style="display:block">McPet</small></div>
+      <div>麦麦营养账本<small style="display:block">McPet</small></div>
     </div>
     <div class="score-pill" id="topScore">
       <span class="dot" id="topDot"></span>
@@ -453,19 +560,19 @@ footer a{color:#8A7B6B}
   </header>
 
   <div class="hook">
-    <h1>点一份麦当劳，喂给它 —— <em>它会长成你这顿饭的样子</em></h1>
-    <p>麦麦宠物把麦当劳 <b>158 款餐品的真实营养数据</b>，翻译成一只看得见的宠物：高蛋白它会发光、热量超标它圆一圈、钠太高它当场喊渴。<b>你不用看懂数字，看它就行。</b></p>
+    <h1>记录你吃的每一顿麦当劳 —— <em>热量、蛋白、钠，一选就知道</em></h1>
+    <p>这是一本<b>麦当劳营养账本</b>。内置官方渠道的 <b>158 款餐品真实营养数据</b>与官方白底图，挑一餐就算出热量、蛋白质、脂肪、碳水、钠、钙与 <b>0-100 健康分</b>，并对照《中国居民膳食指南》告诉你今天还剩多少额度。</p>
     <div class="steps">
       <span><i>1</i>挑餐品，凑成「这一餐」</span>
-      <span><i>2</i>喂给它，看它怎么变</span>
-      <span><i>3</i>看健康分与搭配建议</span>
+      <span><i>2</i>看热量与营养，拿健康分</span>
+      <span><i>3</i>记账后麦麦会跟着变</span>
     </div>
   </div>
 
   <section class="stage">
     <div class="petwrap">
-      <canvas id="pet" width="200" height="200" aria-label="像素宠物 麦麦"></canvas>
-      <div class="petname"><span id="petNameLbl">麦麦</span><span id="petState">待喂食</span></div>
+      <canvas id="pet" width="200" height="200" aria-label="像素宠物 麦麦（营养可视化分身）"></canvas>
+      <div class="petname"><span id="petNameLbl">麦麦</span><span class="petrole" title="记录饮食只是手段，麦麦只是它的可视化副产品">饮食分身 · 副产品</span><span id="petState">待喂食</span></div>
       <div class="bubble" id="bubble">今天想喂我吃点什么呀？点一份餐，我就知道你吃了啥 👀</div>
       <div class="chips-row" id="petTags"></div>
       <div class="minichips" id="miniChips"></div>
@@ -474,7 +581,7 @@ footer a{color:#8A7B6B}
   </section>
 
   <main>
-    <!-- 喂麦麦 -->
+    <!-- 记录：挑餐品 → 这一餐 -->
     <section class="panel on" id="panel-feed">
       <div class="card" style="border-color:#F0DFA8;background:#FFFDF3">
         <div class="baskethead">
@@ -509,12 +616,28 @@ footer a{color:#8A7B6B}
       <div class="card">
         <h3>🧾 今天吃了什么 <small>点条目可复用</small></h3>
         <div class="todaylist" id="todayList"></div>
-        <p class="hint" id="todayEmpty">今天还没喂麦麦，去「喂麦麦」挑一份吧。</p>
+        <p class="hint" id="todayEmpty">今天还没记账，去「记录」挑一份吧。</p>
         <div class="acts"><button class="btn ghost" id="resetToday">清空今天的记录</button></div>
       </div>
       <div class="card">
         <h3>🐾 今天的麦麦 <small>今日综合</small></h3>
         <div class="statgrid" id="todayStats"></div>
+      </div>
+      <div class="card">
+        <h3>🧾 批量导入真实订单 <small>可选</small></h3>
+        <details class="tuck" id="impBox">
+          <summary>展开：把 order-list 的结果贴进来，一次记完一整天</summary>
+          <p class="hint" style="margin:9px 0 0">
+            在 WorkBuddy 里说一句：<code style="background:#F7F1E6;padding:2px 5px;border-radius:5px">用麦当劳 MCP 调 order-list，把返回的原始 JSON 给我</code>，
+            再把结果粘到下面。
+          </p>
+          <textarea class="imp" id="orderIn" placeholder='粘贴 order-list 返回内容（含 "data" 字段的 JSON 即可）'></textarea>
+          <div class="acts">
+            <button class="btn" id="analyzeBtn">生成我的饮食报告</button>
+            <button class="btn ghost" id="clearBtn">清空</button>
+          </div>
+          <div class="report" id="report" style="display:none"></div>
+        </details>
       </div>
       <div class="disclose" id="disc1"></div>
     </section>
@@ -539,7 +662,7 @@ footer a{color:#8A7B6B}
           </div>
           <div class="grade" id="grade">
             <b>还没吃过东西</b>
-            先在「喂麦麦」挑餐品加进「这一餐」，我就能算出这顿对麦麦的影响。
+            先在「记录」挑餐品加进「这一餐」，我就能算出这顿的影响。
           </div>
         </div>
         <div class="parts" id="parts"></div>
@@ -590,55 +713,47 @@ footer a{color:#8A7B6B}
       <div class="card">
         <h3>📇 我的麦麦 <small>养成卡预览</small></h3>
         <div class="cardstat" id="cardStat"></div>
-        <p class="hint">点「生成养成卡」会把下面这张卡渲染成 PNG 下载，可以直接发出去 —— 一只被你喂大的宠物，比一次性的人格卡更耐看。</p>
+        <p class="hint">点「生成养成卡」会把下面这张卡渲染成 PNG 下载。麦麦只是账本的「表情」，真正记账的是上面的数字。</p>
       </div>
     </section>
 
-    <!-- 更多 -->
-    <section class="panel" id="panel-more">
+    <!-- 实时榜单 -->
+    <section class="panel" id="panel-rank">
       <div class="card">
-        <h3>🔌 真实 MCP 能力 <small>需要 Token，在 WorkBuddy 里执行</small></h3>
-        <div class="mcp" id="mcpCards"></div>
-        <p class="hint">
-          营养数据已内置在本页，所以<strong>不配置 Token 也能玩</strong>。
-          下面这几项（领券 / 活动 / 门店 / 订单）必须走真实 MCP 调用 —— 点「复制指令」，
-          粘到 WorkBuddy 对话框里执行即可，结果可以直接贴回本页。
-        </p>
-      </div>
-      <div class="card">
-        <h3>🧾 饮食报告 <small>把 order-list 的结果贴进来</small></h3>
-        <p class="hint" style="margin-top:0">
-          在 WorkBuddy 里执行：<code style="background:#F7F1E6;padding:2px 5px;border-radius:5px">用麦当劳 MCP 调 order-list，把返回的原始 JSON 给我</code>，
-          然后把结果粘贴到下面。
-        </p>
-        <textarea class="imp" id="orderIn" placeholder='粘贴 order-list 返回内容（含 "data" 字段的 JSON 即可）'></textarea>
-        <div class="acts">
-          <button class="btn" id="analyzeBtn">生成我的饮食报告</button>
-          <button class="btn ghost" id="clearBtn">清空</button>
+        <h3>🏆 大赛实时排行榜 <small id="rkState">正在获取…</small></h3>
+        <div class="rankbar">
+          <span class="rkdot" id="rkDot"></span>
+          <span id="rkMeta">排行榜加载中…</span>
+          <button class="btn ghost" id="rkRefresh" style="margin-left:auto;padding:5px 13px;font-size:11.5px">刷新</button>
         </div>
-        <div class="report" id="report" style="display:none"></div>
+        <div class="rklist" id="rkList"></div>
+        <div class="rkfoot">
+          <span>点任意一行 → 打开它的 GitHub 仓库</span>
+          <a id="rkSrc" href="https://github.com/M-China/mcd-developer-innovation-challenge/blob/main/RANKING.md" target="_blank" rel="noopener">原始榜单 ↗</a>
+        </div>
       </div>
-      <div class="disclose">
-        <b>诚实说明：</b>本页只使用麦当劳官方 MCP 提供的字段（能量、蛋白质、脂肪、碳水、钠、钙）。
-        MCP 没有提供的指标（游离糖、膳食纤维、饱和脂肪、加工程度等）本页<strong>一律不估算、不编造</strong>。
-        健康分是本项目自拟的启发式评分，仅供直观比较，<strong>不构成医学或营养建议</strong>。
+      <div class="card">
+        <h3>📌 我在哪 <small>本项目 · 实时星数</small></h3>
+        <div id="rkMine"></div>
       </div>
+      <div class="disclose" id="disc3"></div>
     </section>
   </main>
 
   <footer>
-    麦麦宠物 McPet · 麦当劳程序员节创意开发大赛参赛作品<br>
+    麦麦营养账本 McPet · 麦当劳程序员节创意开发大赛参赛作品<br>
     由参赛者独立开发，非麦当劳官方产品 · 营养数据来自麦当劳中国官方 MCP<br>
+    餐品图片来自麦当劳中国官方菜单（menu-img.mcd.cn），仅用于本项目演示<br>
     页面输出仅供参考，不构成医疗或营养建议
   </footer>
 </div>
 
 <nav class="tabs">
-  <button class="tab on" data-p="feed"><i>🍟</i>喂麦麦</button>
+  <button class="tab on" data-p="feed"><i>🍟</i>记录</button>
   <button class="tab" data-p="today"><i>📅</i>今日</button>
   <button class="tab" data-p="nutrition"><i>📊</i>营养</button>
-  <button class="tab" data-p="pet"><i>🐣</i>成长</button>
-  <button class="tab" data-p="more"><i>🔌</i>MCP</button>
+  <button class="tab" data-p="pet"><i>🐣</i>麦麦</button>
+  <button class="tab" data-p="rank"><i>🏆</i>榜单</button>
 </nav>
 <div class="toast" id="toast"></div>
 
@@ -648,6 +763,20 @@ footer a{color:#8A7B6B}
    本页内联快照，故无需 Token 即可完整体验核心功能。
    ========================================================= */
 const NUTRITION = __NUTRITION_JSON__;
+
+/* 官方白底图索引（麦当劳中国官方菜单 query-meals → 已下载到 assets/food/）
+   形如 { "巨无霸": {src:"assets/food/巨无霸.webp", from:"巨无霸"} } */
+const PHOTOS = (__FOOD_PHOTOS_JSON__.photos) || {};
+const PHOTO_META = {
+  total: __FOOD_PHOTOS_JSON__.total_items || 0,
+  storeName: __FOOD_PHOTOS_JSON__.storeName || '',
+  fetchedAt: __FOOD_PHOTOS_JSON__.fetched_at || ''
+};
+
+/* 榜单索引（仓库地址映射 + 离线快照 + 在线数据源地址） */
+const RANK_INDEX = __RANK_INDEX_JSON__;
+RANK_INDEX.repos = RANK_INDEX.repos || {};
+RANK_INDEX.snapshot = RANK_INDEX.snapshot || [];
 
 /* 单餐参考值（用于雷达图与逐项对照的正常化基线） */
 const REF = { energyKcal:600, protein:25, fat:25, carbohydrate:70, sodium:1000, calcium:300 };
@@ -1011,154 +1140,468 @@ function filtered(){
 }
 
 /* =========================================================
-   卡通食物图标 —— 按麦当劳产品大致外观手绘（内联 SVG，零请求）
-   21 类覆盖全部 158 条餐品，避免"只看到名字不知道是什么"
+   食物视觉系统（v2）
+   1. 名称驱动：先把名字解析成「品类 / 规格（小中大迷你）/ 块数 / 口味」，
+      再按规格作图 —— 小/中/大薯条盒的高度与条数不同，4块/5块鸡块数量不同，
+      中杯/大杯杯身高度不同，香芋派/菠萝派内馅颜色不同。
+   2. 官方实拍优先：能对上官方菜单白底图的餐品直接用实拍图（PHOTOS），
+      对不上的用手绘图标兜底；图片加载失败会自动回落，绝不会出现破图。
+   3. 立体感来自 body 顶部集中定义的渐变（gBun / gFry / gBox …），
+      图标里不再各自 <defs>，避免重复 id 互相覆盖。
    ========================================================= */
-const ICONS = {
-burger:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<path d="M6.5 19c0-7.6 5.8-11.6 13.5-11.6S33.5 11.4 33.5 19z" fill="#F0B95C" stroke="#D08A2E" stroke-width="1.3" stroke-linejoin="round"/>
-<circle cx="14" cy="12.6" r="1.05" fill="#FFF3D2"/><circle cx="20" cy="10.8" r="1.05" fill="#FFF3D2"/><circle cx="26" cy="12.6" r="1.05" fill="#FFF3D2"/>
-<rect x="5.5" y="18.4" width="29" height="4.2" rx="2.1" fill="#6FBF4A"/>
-<rect x="6" y="21.6" width="28" height="4.6" rx="2" fill="#F5C542"/>
-<rect x="6.5" y="25.2" width="27" height="5.6" rx="2.8" fill="#7A4A2B"/>
-<rect x="7.5" y="30.2" width="25" height="5" rx="2.5" fill="#E8A33D" stroke="#D08A2E" stroke-width="1"/></svg>`,
-muffin:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<rect x="6" y="8.5" width="28" height="8.5" rx="4.25" fill="#EFD3A0" stroke="#C99B52" stroke-width="1.2"/>
-<rect x="6" y="16.4" width="28" height="5" rx="2" fill="#8A5A33"/>
-<rect x="5" y="20.4" width="30" height="4.4" rx="2" fill="#F5C542"/>
-<rect x="6" y="24.2" width="28" height="8.5" rx="4.25" fill="#E4BE7E" stroke="#C99B52" stroke-width="1.2"/></svg>`,
-wrap:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<rect x="6" y="14.5" width="25" height="13" rx="6.5" fill="#F2D9A8" stroke="#CFA967" stroke-width="1.2"/>
-<ellipse cx="31" cy="21" rx="4" ry="6.5" fill="#E7C98F" stroke="#CFA967" stroke-width="1.2"/>
-<ellipse cx="31" cy="21" rx="2.3" ry="4.4" fill="#6FBF4A"/>
-<ellipse cx="30.4" cy="21" rx="1.2" ry="2.6" fill="#C4622F"/>
-<path d="M11 18h8M11 21.5h6M11 25h8" stroke="#DCBB84" stroke-width="1.1" stroke-linecap="round" fill="none"/></svg>`,
-fries:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<rect x="13" y="7" width="3.4" height="18" rx="1.6" fill="#FFC72C" stroke="#E0A81E" stroke-width="1"/>
-<rect x="17.4" y="4.5" width="3.4" height="20.5" rx="1.6" fill="#FFD84D" stroke="#E0A81E" stroke-width="1"/>
-<rect x="21.8" y="6.5" width="3.4" height="18.5" rx="1.6" fill="#FFC72C" stroke="#E0A81E" stroke-width="1"/>
-<rect x="26" y="8.5" width="3.4" height="16.5" rx="1.6" fill="#FFD84D" stroke="#E0A81E" stroke-width="1"/>
-<path d="M8.5 18.5h23l-2.3 15.2a3 3 0 0 1-3 2.6H13.8a3 3 0 0 1-3-2.6z" fill="#DA291C" stroke="#B01F16" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M9.6 22.6h20.8" stroke="#FFF0C9" stroke-width="2" fill="none"/></svg>`,
-nuggets:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<ellipse cx="13.5" cy="16" rx="5.4" ry="4.4" fill="#F0B95C" stroke="#CE8C2A" stroke-width="1.1"/>
-<ellipse cx="20" cy="12.6" rx="5.4" ry="4.4" fill="#F5C542" stroke="#CE8C2A" stroke-width="1.1"/>
-<ellipse cx="26.6" cy="16" rx="5.4" ry="4.4" fill="#F0B95C" stroke="#CE8C2A" stroke-width="1.1"/>
-<path d="M8 20.5h24l-2.4 14.2a3 3 0 0 1-3 2.6H13.4a3 3 0 0 1-3-2.6z" fill="#DA291C" stroke="#B01F16" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M9.4 24.7h21.2" stroke="#FFF0C9" stroke-width="2" fill="none"/></svg>`,
-chicken:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<path d="M23.5 21.5l6 8" stroke="#F7E7C8" stroke-width="4.6" stroke-linecap="round" fill="none"/>
-<circle cx="31.5" cy="31.5" r="4.8" fill="#F7E7C8" stroke="#DCC9A6" stroke-width="1.1"/>
-<ellipse cx="16" cy="16.5" rx="10" ry="9.2" fill="#D9902F" stroke="#B4721F" stroke-width="1.2"/>
-<ellipse cx="13" cy="13.4" rx="4.4" ry="3.2" fill="#EBB668" opacity=".75"/>
-<circle cx="19" cy="20" r="1" fill="#B4721F" opacity=".5"/><circle cx="11" cy="19" r="1" fill="#B4721F" opacity=".5"/></svg>`,
-cone:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<path d="M13 17h14l-6.2 17.4a1 1 0 0 1-1.6 0z" fill="#E7C48D" stroke="#C9A467" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M13.9 20.8h11.2M15.4 25.2h8.2M16.9 29.6h5.2" stroke="#D3B37C" stroke-width="1" fill="none"/>
-<path d="M12 17c0-3.4 2-5 4.4-5 0-2.8 1.7-4.4 3.6-4.4s3.6 1.6 3.6 4.4c2.4 0 4.4 1.6 4.4 5z" fill="#FFF6E5" stroke="#E3D3B8" stroke-width="1.2" stroke-linejoin="round"/></svg>`,
-sundae:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<path d="M10 16h20l-2.2 16.4a2.6 2.6 0 0 1-2.6 2.2H14.8a2.6 2.6 0 0 1-2.6-2.2z" fill="#FFFFFF" stroke="#D9CDBB" stroke-width="1.3" stroke-linejoin="round"/>
-<ellipse cx="20" cy="16" rx="10.2" ry="4" fill="#8A5A33"/>
-<circle cx="15.6" cy="12.4" r="4.6" fill="#8A5A33"/><circle cx="23.4" cy="11.6" r="5.2" fill="#7A4A2B"/>
-<circle cx="19.8" cy="7.6" r="4" fill="#8A5A33"/><circle cx="20" cy="4.6" r="2.1" fill="#7A4A2B"/></svg>`,
-pie:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<path d="M20 8.5 33 29.5c.8 1.3-.2 3-1.7 3H8.7c-1.5 0-2.5-1.7-1.7-3z" fill="#F0C070" stroke="#CE9A4A" stroke-width="1.3" stroke-linejoin="round"/>
-<path d="M11 29.4h18M15.5 20h4M21.5 20h3.4" stroke="#CE9A4A" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>`,
-coldcup:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<path d="M10.5 14.5h19l-2.1 20a2.8 2.8 0 0 1-2.8 2.5h-9.2a2.8 2.8 0 0 1-2.8-2.5z" fill="#FFFFFF" stroke="#D9CDBB" stroke-width="1.3" stroke-linejoin="round"/>
-<rect x="21.5" y="3" width="3.2" height="10" rx="1.6" fill="#DA291C" transform="rotate(14 23 8)"/>
-<rect x="9.5" y="10" width="21" height="5" rx="2.2" fill="#DA291C"/>
-<path d="M12.4 20.6h15.2l-.7 7.4H13.1z" fill="#DA291C" opacity=".88"/></svg>`,
-hotcup:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<path d="M12 15.5h16l-1.7 16.6a2.6 2.6 0 0 1-2.6 2.3h-7.4a2.6 2.6 0 0 1-2.6-2.3z" fill="#FFFFFF" stroke="#D9CDBB" stroke-width="1.3" stroke-linejoin="round"/>
-<rect x="11" y="10.5" width="18" height="5.2" rx="2.2" fill="#6B4A2F"/>
-<rect x="12.6" y="19" width="14.8" height="8.4" rx="1.6" fill="#B07A46"/>
-<path d="M15.5 23.2h9" stroke="#8A5A33" stroke-width="1.1" fill="none"/></svg>`,
-tea:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<ellipse cx="20" cy="32.8" rx="13.5" ry="3.4" fill="#EADFCC"/>
-<path d="M10 15.5h20l-2.4 12.4a6.2 6.2 0 0 1-6.1 5h-3a6.2 6.2 0 0 1-6.1-5z" fill="#FFFDF8" stroke="#CFBEA3" stroke-width="1.3" stroke-linejoin="round"/>
-<path d="M30 18.5c4 0 5.4 4.4 1 6.4" fill="none" stroke="#CFBEA3" stroke-width="1.3"/>
-<ellipse cx="20" cy="15.5" rx="10" ry="2.6" fill="#B0703A"/>
-<path d="M17.5 10c1.4-2.2-1.2-3.4.2-5.6M22.5 10c1.4-2.2-1.2-3.4.2-5.6" fill="none" stroke="#D8CBB6" stroke-width="1.2" stroke-linecap="round"/></svg>`,
-icecup:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<path d="M11 18.5h18l-1.9 15.6a2.6 2.6 0 0 1-2.6 2.3h-9a2.6 2.6 0 0 1-2.6-2.3z" fill="#FFFFFF" stroke="#D9CDBB" stroke-width="1.3" stroke-linejoin="round"/>
-<path d="M10 18.5c0-6.1 4.5-10.5 10-10.5s10 4.4 10 10.5z" fill="#EAF3F9" stroke="#CFDCE6" stroke-width="1.2" stroke-linejoin="round"/>
-<rect x="16.5" y="5" width="7" height="3" rx="1.5" fill="#7FC3E8"/>
-<path d="M12.5 24.5h15l-.6 5.4H13.1z" fill="#8A5A33" opacity=".85"/></svg>`,
-corn:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<path d="M11 16.5h18l-1.8 17a2.6 2.6 0 0 1-2.6 2.2h-9.2a2.6 2.6 0 0 1-2.6-2.2z" fill="#FFFFFF" stroke="#D9CDBB" stroke-width="1.3" stroke-linejoin="round"/>
-<ellipse cx="20" cy="16.5" rx="9.2" ry="3.6" fill="#E8B23A"/>
-<circle cx="15.4" cy="13" r="2.6" fill="#FFD84D"/><circle cx="20" cy="11" r="2.8" fill="#FFC72C"/>
-<circle cx="24.6" cy="13" r="2.6" fill="#FFD84D"/><circle cx="17.7" cy="9.4" r="2.2" fill="#FFC72C"/>
-<circle cx="22.3" cy="9.4" r="2.2" fill="#FFD84D"/></svg>`,
-hashbrown:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<ellipse cx="20" cy="21" rx="13.5" ry="10.2" fill="#E8A33D" stroke="#C4822A" stroke-width="1.3"/>
-<ellipse cx="20" cy="21" rx="10.2" ry="7.4" fill="#F0B95C"/>
-<circle cx="15" cy="18" r="1.1" fill="#D08A2E"/><circle cx="24" cy="20" r="1" fill="#D08A2E"/>
-<circle cx="19" cy="24" r="1" fill="#D08A2E"/><circle cx="26" cy="25" r=".9" fill="#D08A2E"/></svg>`,
-youtiao:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<rect x="4" y="14.5" width="32" height="11" rx="5.5" fill="#E8A33D" stroke="#C4822A" stroke-width="1.3"/>
-<path d="M9 17.6h22" stroke="#F7D08A" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-<path d="M9 22.6h22" stroke="#C4822A" stroke-width="1.2" stroke-linecap="round" fill="none"/></svg>`,
-apple:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<path d="M20 12.6c-2.4-2-6.4-2.2-9.2.6-3.6 3.6-3 10.6.6 15 2 2.4 4.6 4 7 3.2 1.2-.4 2-.9 2.6-.9s1.4.5 2.6.9c2.4.8 5-.8 7-3.2 3.6-4.4 4.2-11.4.6-15-2.8-2.8-6.8-2.6-9.2-.6z" fill="#E8554E" stroke="#C63C36" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M20 12.6V8" stroke="#8A5A33" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-<path d="M20 9.4c1.6-3 4.6-3.6 7-3-1 3-3.6 4.4-7 3z" fill="#6FBF4A" stroke="#4E9A32" stroke-width="1" stroke-linejoin="round"/>
-<ellipse cx="14.4" cy="18.6" rx="2" ry="3" fill="#FFFFFF" opacity=".38"/></svg>`,
-congee:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<ellipse cx="20" cy="32.6" rx="12.6" ry="2.8" fill="#EADFCC"/>
-<path d="M8.5 18.5h23c0 8.6-5.2 14-11.5 14S8.5 27.1 8.5 18.5z" fill="#FFFFFF" stroke="#D9CDBB" stroke-width="1.3" stroke-linejoin="round"/>
-<ellipse cx="20" cy="18.5" rx="11.5" ry="3.4" fill="#F2E6CE"/>
-<path d="M15.4 18.2c1-1.8 3-1.8 4 0M21 20c.9-1.5 2.5-1.5 3.4 0" stroke="#DCCBA6" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-<path d="M16.5 12c1.3-2-1-3-.3-4.6M23 12c1.3-2-1-3-.3-4.6" stroke="#D8CBB6" stroke-width="1.1" fill="none" stroke-linecap="round"/></svg>`,
-cake:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<rect x="9" y="15" width="22" height="17" rx="3.4" fill="#7A4A2B" stroke="#5E3620" stroke-width="1.2"/>
-<rect x="9" y="15" width="22" height="6" rx="3" fill="#9A6238"/>
-<circle cx="14" cy="24" r="1.5" fill="#F7EBD4"/><circle cx="20" cy="26.5" r="1.5" fill="#F7EBD4"/>
-<circle cx="26" cy="23" r="1.5" fill="#F7EBD4"/><circle cx="17" cy="29" r="1.4" fill="#F7EBD4"/>
-<circle cx="23.5" cy="29.5" r="1.4" fill="#F7EBD4"/></svg>`,
-bottle:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<rect x="14.5" y="6" width="11" height="4.6" rx="2" fill="#7FC3E8"/>
-<path d="M15 11h10v21a3.4 3.4 0 0 1-3.4 3.4h-3.2A3.4 3.4 0 0 1 15 32z" fill="#E3F2FA" stroke="#9CC7DD" stroke-width="1.2"/>
-<rect x="16.4" y="19" width="7.2" height="8" rx="1.4" fill="#BFE0F0"/>
-<path d="M17.6 22.6h4.8M20 21.2v5" stroke="#FFFFFF" stroke-width="1.1" fill="none"/></svg>`,
-milk:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<path d="M13 13.5 20 8.5l7 5V33a1.6 1.6 0 0 1-1.6 1.6H14.6A1.6 1.6 0 0 1 13 33z" fill="#FFFFFF" stroke="#CFC3B0" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M13 13.5h14M20 8.5v5" stroke="#CFC3B0" stroke-width="1.2" fill="none"/>
-<rect x="15.4" y="19" width="9.2" height="9" rx="1.6" fill="#8FCBE8"/>
-<path d="M17 23.5h6" stroke="#FFFFFF" stroke-width="1.2" fill="none"/></svg>`,
-sausage:`<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-<rect x="6" y="14.5" width="28" height="11" rx="5.5" fill="#B4552B" stroke="#8A3F1E" stroke-width="1.2" transform="rotate(-9 20 20)"/>
-<path d="M13 15.6l3 8M19 14.6l3 8M25 13.6l3 8" stroke="#8A3F1E" stroke-width="1.3" stroke-linecap="round" transform="rotate(-9 20 20)" fill="none"/></svg>`
-};
+const ART_SIZE = { '迷你':{ k:'xs', s:0.58 }, '小':{ k:'s', s:0.76 }, '中':{ k:'m', s:0.94 }, '大':{ k:'l', s:1.14 } };
 
-/* 餐品名 → 图标类别（顺序：具体在前，兜底在后） */
-function iconKeyOf(name){
-  const n = name || '';
+function sizeTok(n){
+  if(/迷你/.test(n)) return '迷你';
+  let m = n.match(/(小|中|大)薯条/); if(m) return m[1];
+  m = n.match(/(小|中|大)杯/); if(m) return m[1];
+  return '';
+}
+function countTok(n){
+  const m = n.match(/(\d+)\s*块/);
+  if(m) return Math.min(+m[1], 12);
+  if(/绝代双翅/.test(n)) return 2;
+  return 0;
+}
+function kindTok(n){
   if(/纯悦/.test(n)) return 'bottle';
-  if(/纯牛奶/.test(n)) return 'milk';
+  if(/纯牛奶/.test(n)) return 'milkbox';
+  if(/苹果汁|橙橙|多汁柠柠/.test(n)) return 'juicebox';
   if(/粥/.test(n)) return 'congee';
   if(/苹果片/.test(n)) return 'apple';
   if(/油条/.test(n)) return 'youtiao';
   if(/薯饼/.test(n)) return 'hashbrown';
-  if(/玉米杯/.test(n)) return 'corn';
-  if(/雪冰/.test(n)) return 'icecup';
-  if(/锡兰红茶|伯爵红茶|川宁/.test(n)) return 'tea';
-  if(/拉明顿|奶冻|爆珠/.test(n)) return 'cake';
+  if(/玉米杯/.test(n)) return 'corncup';
+  if(/雪冰/.test(n)) return 'snowice';
+  if(/奶冻|爆珠|拉明顿/.test(n)) return 'cake';
+  if(/阿芙佳朵/.test(n)) return 'affogato';
   if(/圆筒/.test(n)) return 'cone';
-  if(/新地|麦旋风|阿芙佳朵/.test(n)) return 'sundae';
+  if(/新地|麦旋风/.test(n)) return 'sundae';
   if(/派/.test(n)) return 'pie';
-  if(/薯条/.test(n)) return 'fries';
-  if(/麦乐鸡|趣鸡球|鸡块/.test(n)) return 'nuggets';
-  if(/卷/.test(n)) return 'wrap';
+  if(/薯条|扭扭薯/.test(n)) return 'fries';
+  if(/鸡块|趣鸡球|鸡球|乐鸡\s*\d/.test(n)) return 'nuggets';
+  if(/鸡翅|V翅|双翅/.test(n)) return 'wings';
+  if(/鸡排/.test(n)) return 'chickenfilet';
+  if(/脆汁鸡|琵琶腿|里脊/.test(n)) return 'drumstick';
+  if(/营养卷|多笋卷|叠叠卷/.test(n)) return 'wrap';
   if(/香肠/.test(n)) return 'sausage';
-  if(/鸡翅|V翅|鸡排|脆汁鸡|琵琶腿|里脊|绝代双翅|蜜汁快乐|果然多肉/.test(n)) return 'chicken';
+  if(/锡兰红茶|伯爵红茶|川宁/.test(n)) return 'teacup';
+  if(/可乐|雪碧|怡泉|柠檬红茶|黄金橙橙|橙/.test(n)) return 'coldcup';
+  if(/奶铁|美式|玛奇朵|卡布奇诺|浓缩|鲜萃咖啡/.test(n)) return 'coffeecup';
+  if(/燕麦奶|抹茶牛奶|黑巧|豆浆|热牛奶|冰牛奶|热朱古力/.test(n)) return 'milkdrink';
   if(/麦满分|炒双蛋堡/.test(n)) return 'muffin';
-  if(/可乐|雪碧|怡泉|柠檬红茶|黄金橙橙|阳光橙|苹果汁/.test(n)) return 'coldcup';
-  if(/咖啡|美式|玛奇朵|卡布奇诺|浓缩|奶铁|燕麦奶|黑巧|朱古力|抹茶牛奶|热牛|冰牛|豆浆/.test(n)) return 'hotcup';
   return 'burger';
 }
-function foodIcon(name){ return ICONS[iconKeyOf(name)] || ICONS.burger; }
+function specOf(name){
+  const n = String(name || '');
+  const t = sizeTok(n);
+  return {
+    name: n,
+    kind: kindTok(n),
+    size: t ? ART_SIZE[t].k : 'm',
+    scale: t ? ART_SIZE[t].s : 1,
+    count: countTok(n)
+  };
+}
+
+/* ---------- 画零件用的小工具 ---------- */
+const V = 40;                                          // 统一 40×40 画布
+const svgWrap = inner => `<svg viewBox="0 0 ${V} ${V}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+const ell = (cx,cy,rx,ry,fill,extra='') => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${fill}"${extra}/>`;
+const rr  = (x,y,w,h,r,fill,extra='') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}"${extra}/>`;
+/* 上宽下窄的杯子/盒子轮廓 */
+const cupPath = (x0,x1,yt,yb,inset=2.4) =>
+  `M${x0} ${yt} L${x1} ${yt} L${x1-inset} ${yb} Q${x1-inset-.4} ${yb+1.4} ${x1-inset-1.6} ${yb+1.4} `+
+  `L${x0+inset+1.6} ${yb+1.4} Q${x0+inset+.4} ${yb+1.4} ${x0+inset} ${yb} Z`;
+
+/* ---------- 各品类的画法 ---------- */
+const ART = {};
+
+/* 薯条：盒子高度与薯条根数随规格变化（迷你 4 · 小 5 · 中 6 · 大 7） */
+ART.fries = v => {
+  const conf = { xs:[22.5,4], s:[20.5,5], m:[18.5,6], l:[15.5,7] }[v.size] || [18.5,6];
+  const [ty, cnt] = conf, bx = 8.6, bw = 22.8, by = 35.6;
+  let out = '';
+  for(let i=0;i<cnt;i++){
+    const x = bx + 2.6 + i * (bw - 5.2) / Math.max(1, cnt - 1) - 1.5;
+    const h = ty - 3.4 + (i % 2 ? 1.6 : 0);
+    out += rr(x, Math.max(4.2, ty - h), 3, h + 4.2, 1.5, 'url(#gFry)', ' stroke="#D9971A" stroke-width=".7"');
+  }
+  out += `<path d="${cupPath(bx,bx+bw,ty,by)}" fill="url(#gBox)" stroke="#8E1106" stroke-width="1" stroke-linejoin="round"/>`;
+  out += `<path d="M${bx+1.2} ${ty+4.6} h${bw-2.4}" stroke="#FFE9A8" stroke-width="1.9" fill="none"/>`;
+  if(/脆脆|扭扭/.test(v.name)) out += `<circle cx="13" cy="${ty-6}" r="1.1" fill="#FFF3D2"/><circle cx="27" cy="${ty-4}" r="1.1" fill="#FFF3D2"/>`;
+  return svgWrap(out);
+};
+
+/* 冷饮杯：杯身高度随规格变化，液体颜色随口味变化 */
+ART.coldcup = v => {
+  const yt = { xs:20.5, s:18.6, m:17, l:14.6 }[v.size] || 17;
+  const x0 = 10.4, x1 = 29.6, by = 32.4;
+  const zero = /无糖|零度/.test(v.name);
+  const liquid = zero ? '#2B2B2B' : /雪碧/.test(v.name) ? '#8FD3E8'
+    : /橙|柠|怡泉/.test(v.name) ? 'url(#gTea)' : 'url(#gCola)';
+  let out = `<path d="${cupPath(x0,x1,yt,by)}" fill="url(#gCup)" stroke="#CFC3B0" stroke-width="1.1" stroke-linejoin="round"/>`;
+  out += `<path d="${cupPath(x0+1.3,x1-1.3,yt+3.2,by-1.2,.9)}" fill="${liquid}" opacity=".92"/>`;
+  if(zero) out += rr(x0+4.4, yt+6.6, 11.4, 7.4, 1.6, '#F2F2F2', ' stroke="#C9C9C9" stroke-width=".7"');
+  out += rr(9.6, yt-5.2, 20.8, 5.4, 2.3, 'url(#gLid)');
+  out += rr(22.2, 2.6, 3.1, 11.2, 1.5, '#DA291C', ' transform="rotate(13 23.7 8)"');
+  if(/柠檬|柠萌/.test(v.name)) out += `<circle cx="31" cy="${yt+7}" r="3.4" fill="#F7E27A" stroke="#DCBE3E" stroke-width="1"/><path d="M31 ${yt+3.9} v6.2" stroke="#DCBE3E" stroke-width=".9"/>`;
+  return svgWrap(out);
+};
+
+/* 咖啡杯：热的→白杯+深盖+杯套；冰的→透明杯+冰块 */
+ART.coffeecup = v => {
+  const hot = /^热|热美式|热奶铁|热焦糖|热浓缩/.test(v.name) || !/冰/.test(v.name);
+  const yt = { xs:20, s:18, m:16.4, l:14.2 }[v.size] || 16.4;
+  const x0 = 11, x1 = 29, by = 32;
+  let out = '';
+  if(hot){
+    out += `<path d="${cupPath(x0,x1,yt,by)}" fill="url(#gCup)" stroke="#CFC3B0" stroke-width="1.1" stroke-linejoin="round"/>`;
+    out += rr(x0+.4, yt+4.4, x1-x0-.8, 8.6, 1.4, 'url(#gTea)');
+    out += rr(x0-1, yt-5.6, x1-x0+2, 5.8, 2.4, '#4B3222');
+    out += rr(x0-1.6, yt-9, x1-x0+3.2, 3.8, 1.6, '#6B4A2F');
+  } else {
+    out += `<path d="${cupPath(x0+1,x1-1,yt,by)}" fill="#EAF3F9" stroke="#B9CDD9" stroke-width="1.1" stroke-linejoin="round" opacity=".95"/>`;
+    out += `<path d="${cupPath(x0+2.2,x1-2.2,yt+4.6,by-1.6,.9)}" fill="url(#gTea)" opacity=".9"/>`;
+    out += `<path d="M${x0-.6} ${yt} c0-4.6 3.6-7.6 8.6-7.6 h${x1-x0-16} c5 0 8.6 3 8.6 7.6 z" fill="#F2FAFE" stroke="#B9CDD9" stroke-width="1.1" stroke-linejoin="round"/>`;
+    out += rr(17.8, yt+5.4, 3.4, 3.4, .8, '#FFFFFF', ' opacity=".8"') + rr(22.4, yt+8.4, 3, 3, .7, '#FFFFFF', ' opacity=".7"');
+  }
+  return svgWrap(out);
+};
+
+/* 牛奶类：豆浆 / 燕麦奶 / 抹茶牛奶 / 黑巧 —— 靠杯中色带区分口味 */
+ART.milkdrink = v => {
+  const liquid = /抹茶/.test(v.name) ? 'url(#gMatcha)' : /黑巧|朱古力/.test(v.name) ? 'url(#gChoco)'
+    : /燕麦/.test(v.name) ? 'url(#gOat)' : '#F6EEDC';
+  const yt = { xs:20, s:18, m:16.4, l:14.2 }[v.size] || 16.4;
+  const x0 = 11, x1 = 29, by = 31.8;
+  let out = `<path d="${cupPath(x0,x1,yt,by)}" fill="url(#gCup)" stroke="#CFC3B0" stroke-width="1.1" stroke-linejoin="round"/>`;
+  out += `<path d="${cupPath(x0+1.4,x1-1.4,yt+3,by-1.1,.9)}" fill="${liquid}" opacity=".95"/>`;
+  out += rr(x0-.6, yt-5, x1-x0+1.2, 5.2, 2.2, '#8A7B6B');
+  if(/冰/.test(v.name)) out += rr(17.4, yt+5.2, 3.6, 3.6, .8, '#FFFFFF', ' opacity=".75"') + rr(22.6, yt+8, 3.2, 3.2, .7, '#FFFFFF', ' opacity=".6"');
+  if(/抹茶/.test(v.name)) out += `<path d="M${x0+5.6} ${yt+7.4} q3.4 -2.6 6.8 0" stroke="#3F6B1F" stroke-width="1" fill="none" opacity=".5"/>`;
+  return svgWrap(out);
+};
+
+/* 雪冰：带半球盖、分层色 */
+ART.snowice = v => {
+  const liquid = /黑巧/.test(v.name) ? 'url(#gChoco)' : /抹茶/.test(v.name) ? 'url(#gMatcha)' : 'url(#gOat)';
+  const yt = { xs:20, s:18, m:16.4, l:14.2 }[v.size] || 16.4;
+  const x0 = 10.6, x1 = 29.4, by = 32.6;
+  let out = `<path d="${cupPath(x0,x1,yt,by)}" fill="url(#gCup)" stroke="#CFC3B0" stroke-width="1.1" stroke-linejoin="round"/>`;
+  out += `<path d="${cupPath(x0+1.3,x1-1.3,yt+4.4,by-1.2,.9)}" fill="${liquid}" opacity=".93"/>`;
+  out += `<path d="M${x0-.8} ${yt} c0-4.4 4.4-7.4 10.2-7.4 s10.2 3 10.2 7.4 z" fill="#F4FAFE" stroke="#C3D5E0" stroke-width="1.1" stroke-linejoin="round"/>`;
+  out += rr(19.4, 3.6, 2.6, 4.4, 1.3, '#7FC3E8');
+  return svgWrap(out);
+};
+
+/* 茶杯（红茶）：杯 + 碟 + 热气 */
+ART.teacup = v => {
+  let out = ell(20, 33.4, 12.6, 3.1, '#EADFCC');
+  out += `<path d="M10.4 16.6 h19.2 l-2.4 11.8 a6 6 0 0 1-5.9 4.8 h-2.6 a6 6 0 0 1-5.9-4.8 z" fill="url(#gCup)" stroke="#CFBEA3" stroke-width="1.2" stroke-linejoin="round"/>`;
+  out += `<path d="M29.6 19.4 c4.2 0 5.6 4.6.8 6.6" fill="none" stroke="#CFBEA3" stroke-width="1.3"/>`;
+  out += ell(20, 16.6, 9.6, 2.5, 'url(#gTea)');
+  out += `<path d="M17.6 11.4c1.4-2.2-1.2-3.4.2-5.6M22.4 11.4c1.4-2.2-1.2-3.4.2-5.6" fill="none" stroke="#D8CBB6" stroke-width="1.2" stroke-linecap="round"/>`;
+  return svgWrap(out);
+};
+
+/* 圆筒冰淇淋 */
+ART.cone = v => {
+  let out = `<path d="M13.4 17.4 h13.2 l-5.9 16.6 a1 1 0 0 1-1.4 0 z" fill="url(#gCone)" stroke="#C39A5C" stroke-width="1.1" stroke-linejoin="round"/>`;
+  out += `<path d="M14.6 21.2 h10.8M16.2 25.6 h7.6M17.8 30 h4.4" stroke="#C9A467" stroke-width=".9" fill="none"/>`;
+  out += `<path d="M12.4 17.4 c0-3.4 2-5 4.4-5 0-2.8 1.4-4.4 3.2-4.4 s3.2 1.6 3.2 4.4 c2.4 0 4.4 1.6 4.4 5 z" fill="url(#gCream)" stroke="#E0D2B8" stroke-width="1.1" stroke-linejoin="round"/>`;
+  if(/灰焰/.test(v.name)) out += `<path d="M14.6 14.6 q5.4-3.4 10.8 0" stroke="#8E8E8E" stroke-width="1.4" fill="none"/>`;
+  return svgWrap(out);
+};
+
+/* 新地 / 麦旋风：杯装 + 顶部浇头随口味变化 */
+ART.sundae = v => {
+  const top = /草莓/.test(v.name) ? 'url(#gBerry)' : /奥利奥|蓝莓/.test(v.name) ? 'url(#gChoco)' : 'url(#gChoco)';
+  const small = v.size === 'xs';
+  const yt = small ? 20.4 : 17.6, by = 34.4;
+  const x0 = small ? 12.6 : 10.6, x1 = small ? 27.4 : 29.4;
+  let out = `<path d="${cupPath(x0,x1,yt,by,2)}" fill="url(#gCream)" stroke="#D6C9B4" stroke-width="1.1" stroke-linejoin="round"/>`;
+  out += ell(20, yt, (x1-x0)/2, small?3:3.6, top);
+  out += `<circle cx="${small?17:15.4}" cy="${yt-3.4}" r="${small?2.8:3.8}" fill="${top}"/><circle cx="${small?23:24.6}" cy="${yt-3}" r="${small?3:4.2}" fill="${top}"/>`;
+  out += `<circle cx="20" cy="${yt-(small?5.6:7.2)}" r="${small?2.4:3.4}" fill="${top}"/>`;
+  if(/奥利奥|蓝莓|爆珠/.test(v.name)) out += `<circle cx="17" cy="${yt-6.4}" r="1.1" fill="#FFFFFF"/><circle cx="23.4" cy="${yt-4.6}" r="1" fill="#FFFFFF"/><circle cx="20.6" cy="${yt-9}" r=".9" fill="#FFFFFF"/>`;
+  return svgWrap(out);
+};
+
+/* 阿芙佳朵：玻璃杯 + 冰淇淋球 + 淋咖啡 */
+ART.affogato = v => {
+  const liquid = /抹茶/.test(v.name) ? 'url(#gMatcha)' : 'url(#gChoco)';
+  let out = `<path d="M11.6 15.4 h16.8 l-2.2 17.6 a2.4 2.4 0 0 1-2.4 2.1 h-7.6 a2.4 2.4 0 0 1-2.4-2.1 z" fill="#F1F7FB" stroke="#C3D5E0" stroke-width="1.1" stroke-linejoin="round" opacity=".95"/>`;
+  out += `<circle cx="16.6" cy="16.6" r="4.6" fill="url(#gCream)"/><circle cx="23.4" cy="15.8" r="5.2" fill="#FBF6EE"/>`;
+  out += `<path d="M13.4 17 c2 2 4.6 3 6.8 3.2 2.4.2 4.8-.8 6.4-2.6 l-.5 3.4 c-2 1.6-4.6 2.4-6.8 2.2 -2.2-.2-4.4-1.2-6-2.8 z" fill="${liquid}"/>`;
+  out += rr(17.6, 4.6, 3, 5.4, 1.5, '#CFC3B0');
+  return svgWrap(out);
+};
+
+/* 派：香芋紫 / 菠萝黄，边缘压花 */
+ART.pie = v => {
+  const fill = /香芋/.test(v.name) ? 'url(#gPurple)' : 'url(#gPie)';
+  let out = `<path d="M20 9 32.6 29.6 c.8 1.3-.2 3-1.7 3 H9.1 c-1.5 0-2.5-1.7-1.7-3 Z" fill="${fill}" stroke="#C8952F" stroke-width="1.2" stroke-linejoin="round"/>`;
+  out += `<path d="M11.4 28.6 h17.2" stroke="#D8A94A" stroke-width="1.4" stroke-linecap="round" fill="none"/>`;
+  out += `<path d="M20 9 26.4 19.6 H13.6 Z" fill="#FFFFFF" opacity=".22"/>`;
+  out += `<circle cx="20" cy="10.6" r="1.1" fill="#FFFFFF" opacity=".55"/>`;
+  if(/菠萝/.test(v.name)) out += `<path d="M15.6 24.4 h3.4M21 24.4 h3.4" stroke="#C8952F" stroke-width="1.1" stroke-linecap="round" fill="none"/>`;
+  else out += `<circle cx="16.6" cy="24.4" r="1.2" fill="#F7EBD4"/><circle cx="23.4" cy="24.4" r="1.2" fill="#F7EBD4"/>`;
+  return svgWrap(out);
+};
+
+/* 鸡块：块数决定盒里露出几块（4块 / 5块 / 8块） */
+ART.nuggets = v => {
+  const cnt = v.count || 5;
+  const shown = cnt <= 4 ? 2 : cnt <= 5 ? 3 : cnt <= 6 ? 3 : 4;
+  let out = '';
+  for(let i=0;i<shown;i++){
+    const x = 20 + (i - (shown-1)/2) * 7.4;
+    const y = 15.6 - (i % 2 ? 1.4 : 0);
+    out += `<ellipse cx="${x}" cy="${y}" rx="4.2" ry="3.4" fill="url(#gMeat)" stroke="#BE7A1E" stroke-width="1"/>`;
+    out += `<circle cx="${x-1}" cy="${y-.6}" r=".9" fill="#F6D79A" opacity=".8"/>`;
+  }
+  if(shown >= 4) out += `<ellipse cx="20" cy="10.6" rx="4" ry="3.2" fill="url(#gMeat)" stroke="#BE7A1E" stroke-width="1"/>`;
+  out += `<path d="${cupPath(7.8,32.2,17.6,34.6,2.6)}" fill="url(#gBox)" stroke="#8E1106" stroke-width="1" stroke-linejoin="round"/>`;
+  out += `<path d="M9.2 21.6 h21.6" stroke="#FFE9A8" stroke-width="1.9" fill="none"/>`;
+  return svgWrap(out);
+};
+
+/* 鸡翅 / V翅：形状与口味区分 —— 麦辣带辣椒粒，V翅是 V 形，柠萌配柠檬 */
+ART.wings = v => {
+  let out = '';
+  if(/V翅/.test(v.name)){
+    const one = (dx, rot) =>
+      `<g transform="translate(${dx} 0) rotate(${rot} 20 21)">
+        <path d="M13 14.6 L27 23.6 L16.6 26.8 Z" fill="url(#gMeat)" stroke="#BE7A1E" stroke-width="1.1" stroke-linejoin="round"/>
+        <path d="M24.4 22.2 L28.6 18.6" stroke="#F2E2C4" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+      </g>`;
+    out = one(0,-4) + `<g opacity=".92">${one(3,10)}</g>`;
+  } else {
+    const one = dx => `<g transform="translate(${dx} 0)">
+      <ellipse cx="14.4" cy="21.4" rx="6.6" ry="5.4" fill="url(#gMeat)" stroke="#BE7A1E" stroke-width="1.1"/>
+      <path d="M19.4 25.4 q5.4 3.4 8.2 6" stroke="#F2E2C4" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <circle cx="24.6" cy="30.2" r="2.4" fill="#F7E7C8" stroke="#DCC9A6" stroke-width=".9"/>
+    </g>`;
+    out = one(0) + `<g opacity=".95">${one(6.4)}</g>`;
+  }
+  if(/麦辣|绝代/.test(v.name)) out += `<circle cx="12.4" cy="19" r="1" fill="#DA291C"/><circle cx="16.6" cy="23.6" r=".9" fill="#DA291C"/><circle cx="23" cy="19.4" r=".9" fill="#DA291C"/>`;
+  if(/柠萌|柠檬/.test(v.name)) out += `<circle cx="31" cy="13.6" r="4" fill="#F7E27A" stroke="#DCBE3E" stroke-width="1"/><path d="M31 9.6 v8M27 13.6 h8" stroke="#DCBE3E" stroke-width=".9"/>`;
+  if(/蜜汁|BBQ/.test(v.name)) out += `<path d="M8.6 15.4 q11.4 -3.4 22.8 0" stroke="#8A4A18" stroke-width="1.5" fill="none" opacity=".55"/>`;
+  return svgWrap(out);
+};
+
+/* 鸡腿 / 带骨里脊：形状不同，口味影响表面 */
+ART.drumstick = v => {
+  const strip = /里脊/.test(v.name);
+  let out = '';
+  if(strip){
+    out += `<ellipse cx="19" cy="21" rx="11" ry="6.6" fill="url(#gMeat)" stroke="#BE7A1E" stroke-width="1.1"/>`;
+    out += `<path d="M30 21 h4.6" stroke="#F7E7C8" stroke-width="3" stroke-linecap="round"/><circle cx="35" cy="21" r="2.2" fill="#F7E7C8" stroke="#DCC9A6" stroke-width=".8"/>`;
+    out += `<path d="M10 17.6 q9 -2.4 18 0" stroke="#F6D79A" stroke-width="1.2" fill="none" opacity=".7"/>`;
+  } else {
+    out += `<ellipse cx="16.4" cy="16.6" rx="9.4" ry="8.6" fill="url(#gMeat)" stroke="#BE7A1E" stroke-width="1.1"/>`;
+    out += `<path d="M23 22.6 l5.6 7.6" stroke="#F7E7C8" stroke-width="4.2" stroke-linecap="round" fill="none"/>`;
+    out += `<circle cx="30.6" cy="32" r="4.4" fill="#F7E7C8" stroke="#DCC9A6" stroke-width="1"/>`;
+    out += `<ellipse cx="13.6" cy="13.8" rx="3.6" ry="2.6" fill="#F6D79A" opacity=".65"/>`;
+  }
+  if(/蜜汁|BBQ/.test(v.name)) out += `<path d="M8.2 12.6 q10 -3 19.6 0" stroke="#8A4A18" stroke-width="1.6" fill="none" opacity=".5"/>`;
+  if(/蒜/.test(v.name)) out += `<circle cx="13" cy="20" r="1" fill="#F4EEDC"/><circle cx="19" cy="11.6" r="1" fill="#F4EEDC"/><circle cx="24" cy="18" r=".9" fill="#F4EEDC"/>`;
+  if(/椒盐/.test(v.name)) out += `<circle cx="12" cy="14" r=".9" fill="#3A2A16" opacity=".35"/><circle cx="20" cy="22" r=".8" fill="#3A2A16" opacity=".3"/>`;
+  return svgWrap(out);
+};
+
+/* 鸡排：扁平大块 */
+ART.chickenfilet = v => {
+  let out = `<path d="M6.6 25.6 c-1.4-5.6 2.6-11 9.4-12.4 7.6-1.6 15 .8 17.4 5.6 2 4-.6 8.4-6 9.8 -6 1.6-13 1.2-17.4-.6 -1.8-.8-3-1.6-3.4-2.4Z" fill="url(#gMeat)" stroke="#BE7A1E" stroke-width="1.1"/>`;
+  out += `<circle cx="15" cy="20.4" r="1" fill="#F6D79A" opacity=".7"/><circle cx="24" cy="18.4" r="1" fill="#F6D79A" opacity=".6"/><circle cx="20" cy="25" r="1" fill="#F6D79A" opacity=".55"/>`;
+  if(/椒盐/.test(v.name)) out += `<circle cx="12.6" cy="17" r=".9" fill="#3A2A16" opacity=".35"/><circle cx="27" cy="22.6" r=".8" fill="#3A2A16" opacity=".3"/>`;
+  return svgWrap(out);
+};
+
+/* 汉堡：面包形态 + 层数 + 有没有芝士/生菜，按名字决定 */
+ART.burger = v => {
+  const n = v.name;
+  const long  = /麦辣鸡腿|麦香鸡/.test(n);
+  const flat  = /板烧/.test(n);
+  const fish  = /麦香鱼|鳕鱼|鱼排/.test(n);
+  const layers = /巨无霸|双层|双牛|不素之霸|鳕鱼/.test(n) ? 2 : 1;
+  const cheese = /吉士|芝士|安格斯|巨无霸|牛堡|儿童|汉堡包/.test(n) && !fish;
+  let out = '';
+  if(long || flat){
+    const top = flat ? 'url(#gBunFlat)' : 'url(#gBun)';
+    out += `<path d="M6.4 ${flat?17.6:16.6} h27.2 v${flat?4.6:4.2} H6.4 Z" fill="${top}" stroke="#D08A2E" stroke-width="1.1" stroke-linejoin="round" rx="1"/>`;
+    if(flat) out += `<path d="M9 19.4 h6M17 19.4 h6M25 19.4 h5.6" stroke="#C08A4A" stroke-width="1.1" stroke-linecap="round" fill="none"/>`;
+    out += rr(5.6, flat?22.2:20.8, 28.8, 3.6, 1.8, 'url(#gGreen)');
+    out += rr(6.2, flat?25.4:24.2, 27.6, 5.4, 2.6, 'url(#gPatty)');
+    if(cheese) out += `<path d="M7 30.2 h26 l-3 3.4 h-20 Z" fill="url(#gCheese)"/>`;
+    out += `<path d="M7.4 33.4 h25.2 a2.4 2.4 0 0 1-2.4 2.4 H9.8 a2.4 2.4 0 0 1-2.4-2.4 Z" fill="${top}" stroke="#D08A2E" stroke-width="1"/>`;
+    return svgWrap(out);
+  }
+  if(fish){
+    out += `<path d="M7.4 17.6 c0-6 5.6-9.4 12.6-9.4 s12.6 3.4 12.6 9.4 z" fill="url(#gBunFlat)" stroke="#C9A467" stroke-width="1.1" stroke-linejoin="round"/>`;
+    out += rr(6.4, 17, 27.2, 5, 2.4, 'url(#gMeat)');
+    out += `<path d="M7 22.2 h26 l-2.6 3.4 h-20.8 Z" fill="url(#gCheese)" opacity=".85"/>`;
+    out += `<path d="M7.4 25.6 h25.2 c0 5.6-5.6 8.6-12.6 8.6 s-12.6-3-12.6-8.6 Z" fill="url(#gBunFlat)" stroke="#C9A467" stroke-width="1.1"/>`;
+    return svgWrap(out);
+  }
+  /* 圆面包 */
+  out += `<path d="M6.6 18.6 c0-7.4 5.8-11.6 13.4-11.6 s13.4 4.2 13.4 11.6 z" fill="url(#gBun)" stroke="#D08A2E" stroke-width="1.2" stroke-linejoin="round"/>`;
+  out += `<circle cx="14" cy="12.4" r="1.05" fill="#FFF3D2"/><circle cx="20" cy="10.6" r="1.05" fill="#FFF3D2"/><circle cx="26" cy="12.4" r="1.05" fill="#FFF3D2"/>`;
+  out += rr(5.6, 18, 28.8, 3.8, 1.9, 'url(#gGreen)');
+  if(cheese) out += rr(6, 21.2, 28, 4.2, 2, 'url(#gCheese)');
+  else out += rr(6, 21.2, 28, 3.4, 1.7, 'url(#gGreen)');
+  out += rr(6.4, cheese ? 25 : 24.4, 27.2, 5.6, 2.8, 'url(#gPatty)');
+  if(layers >= 2){
+    out += rr(6.8, 30, 26.4, 2.6, 1.3, 'url(#gCheese)');
+    out += rr(7, 32.2, 26, 3.6, 1.8, 'url(#gPatty)');
+  }
+  out += `<path d="M7.2 ${layers>=2?35.6:29.8} h25.6 c0 2.6-2 4.4-4.6 4.4 H11.8 c-2.6 0-4.6-1.8-4.6-4.4 Z" fill="url(#gBun)" stroke="#D08A2E" stroke-width="1.1"/>`;
+  return svgWrap(out);
+};
+
+/* 麦满分：英式玛芬 + 煎蛋 + 肉层，双层/有没有蛋按名字决定 */
+ART.muffin = v => {
+  const n = v.name;
+  const egg  = /蛋/.test(n);
+  const dbl  = /双层/.test(n);
+  const meat = /烟肉/.test(n) ? '#C4552A' : /火腿/.test(n) ? '#E38A8A' : /鸡扒/.test(n) ? 'url(#gMeat)' : 'url(#gPatty)';
+  let out = rr(6.6, 9.4, 26.8, 7.6, 3.8, 'url(#gBunFlat)', ' stroke="#C0A26E" stroke-width="1.1"');
+  out += `<circle cx="13" cy="13" r=".7" fill="#E4D3B2"/><circle cx="20" cy="11.6" r=".7" fill="#E4D3B2"/><circle cx="27" cy="13" r=".7" fill="#E4D3B2"/>`;
+  let y = 17;
+  if(egg){ out += `<path d="M7.4 ${y} h25.2 v4.4 a2.2 2.2 0 0 1-2.2 2.2 H9.6 a2.2 2.2 0 0 1-2.2-2.2 Z" fill="#FFF3D2" stroke="#F0DCA8" stroke-width=".9"/><circle cx="20" cy="${y+3.2}" r="2.6" fill="#FFD34D"/>`; y += 6.8; }
+  if(dbl){ out += rr(6.8, y, 26.4, 3.4, 1.7, meat); y += 3.6; }
+  out += rr(6.8, y, 26.4, 4.8, 2.4, meat);
+  if(/芝士|吉士/.test(n)) out += rr(6.4, y+4.4, 27.2, 3.2, 1.6, 'url(#gCheese)');
+  out += rr(6.6, 27.4, 26.8, 5.4, 2.7, 'url(#gBunFlat)', ' stroke="#C0A26E" stroke-width="1.1"');
+  return svgWrap(out);
+};
+
+/* 卷类 */
+ART.wrap = v => {
+  const green = /鲜蔬|多笋|沙拉|叠叠/.test(v.name);
+  let out = rr(5.6, 15.4, 24, 12.4, 6.2, 'url(#gBunFlat)', ' stroke="#CBA874" stroke-width="1.1"');
+  out += `<ellipse cx="30.4" cy="21.6" rx="4.4" ry="6.6" fill="#E7C98F" stroke="#CBA874" stroke-width="1.1"/>`;
+  out += `<ellipse cx="30.4" cy="21.6" rx="2.6" ry="4.6" fill="${green ? 'url(#gGreen)' : 'url(#gMeat)'}"/>`;
+  if(green) out += `<ellipse cx="29.6" cy="21.6" rx="1.2" ry="2.4" fill="#FFFFFF" opacity=".8"/>`;
+  out += `<path d="M10.6 18.6 h8M10.6 22 h6M10.6 25.4 h8" stroke="#DCBB84" stroke-width="1.1" stroke-linecap="round" fill="none"/>`;
+  return svgWrap(out);
+};
+
+/* 香肠 */
+ART.sausage = v => {
+  let out = `<g transform="rotate(-9 20 20)">
+    <rect x="6.6" y="15" width="27" height="10.6" rx="5.3" fill="#B4552B" stroke="#8A3F1E" stroke-width="1.1"/>
+    <path d="M13 16.2 l3 8M19 15.4 l3 8M25 14.6 l3 8" stroke="#8A3F1E" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+    <path d="M10 18.4 q10 -2.4 20 -0.4" stroke="#E08A55" stroke-width="1.2" fill="none" opacity=".75"/></g>`;
+  return svgWrap(out);
+};
+
+/* 玉米杯 */
+ART.corncup = v => {
+  const wide = v.size === 'l';
+  const x0 = wide ? 10 : 12, x1 = wide ? 30 : 28, yt = wide ? 17.6 : 19.6, by = 35.4;
+  let out = `<path d="${cupPath(x0,x1,yt,by,2.2)}" fill="url(#gCup)" stroke="#D6C9B4" stroke-width="1.1" stroke-linejoin="round"/>`;
+  out += ell(20, yt, (x1-x0)/2, 3.4, '#E8B23A');
+  out += `<circle cx="15.4" cy="${yt-3.2}" r="2.6" fill="#FFD84D"/><circle cx="20" cy="${yt-5.4}" r="2.8" fill="#FFC72C"/><circle cx="24.6" cy="${yt-3.2}" r="2.6" fill="#FFD84D"/>`;
+  out += `<circle cx="17.7" cy="${yt-7.2}" r="2.2" fill="#FFC72C"/><circle cx="22.3" cy="${yt-7.2}" r="2.2" fill="#FFD84D"/>`;
+  return svgWrap(out);
+};
+
+/* 薯饼 */
+ART.hashbrown = v => {
+  let out = ell(20, 21, 13.4, 10, 'url(#gPotato)', ' stroke="#C4822A" stroke-width="1.2"');
+  out += ell(20, 21, 10, 7.2, '#F0BC5E');
+  out += `<circle cx="15" cy="18.4" r="1.1" fill="#C4822A" opacity=".7"/><circle cx="24.6" cy="20" r="1" fill="#C4822A" opacity=".7"/><circle cx="19.4" cy="24.4" r="1" fill="#C4822A" opacity=".7"/><circle cx="26" cy="25" r=".9" fill="#C4822A" opacity=".6"/>`;
+  if(/心形/.test(v.name)) out += `<path d="M20 24.6c-3.4-2.4-5.6-4.2-5.6-6.4 0-1.7 1.3-2.8 2.8-2.8 1.1 0 2.1.6 2.8 1.6.7-1 1.7-1.6 2.8-1.6 1.5 0 2.8 1.1 2.8 2.8 0 2.2-2.2 4-5.6 6.4z" fill="#FFFFFF" opacity=".55"/>`;
+  return svgWrap(out);
+};
+
+/* 油条 */
+ART.youtiao = v => {
+  let out = `<rect x="4.4" y="15" width="31.2" height="10.6" rx="5.3" fill="url(#gPotato)" stroke="#C4822A" stroke-width="1.1"/>`;
+  out += `<path d="M9.4 18 h21.2" stroke="#F7D08A" stroke-width="2" stroke-linecap="round" fill="none"/>`;
+  out += `<path d="M9.4 22.8 h21.2" stroke="#C4822A" stroke-width="1.1" stroke-linecap="round" fill="none"/>`;
+  return svgWrap(out);
+};
+
+/* 苹果片 */
+ART.apple = v => {
+  let out = `<path d="M20 12.6c-2.4-2-6.4-2.2-9.2.6-3.6 3.6-3 10.6.6 15 2 2.4 4.6 4 7 3.2 1.2-.4 2-.9 2.6-.9s1.4.5 2.6.9c2.4.8 5-.8 7-3.2 3.6-4.4 4.2-11.4.6-15-2.8-2.8-6.8-2.6-9.2-.6z" fill="url(#gRed)" stroke="#A81E15" stroke-width="1.1" stroke-linejoin="round"/>`;
+  out += `<path d="M20 12.6V8" stroke="#8A5A33" stroke-width="1.8" stroke-linecap="round" fill="none"/>`;
+  out += `<path d="M20 9.4c1.6-3 4.6-3.6 7-3-1 3-3.6 4.4-7 3z" fill="url(#gGreen)" stroke="#4E9A32" stroke-width="1" stroke-linejoin="round"/>`;
+  out += `<ellipse cx="14.4" cy="18.6" rx="2" ry="3" fill="#FFFFFF" opacity=".35"/>`;
+  return svgWrap(out);
+};
+
+/* 粥 */
+ART.congee = v => {
+  let out = ell(20, 32.6, 12.6, 2.8, '#EADFCC');
+  out += `<path d="M8.6 18.6h22.8c0 8.6-5.2 14-11.4 14s-11.4-5.4-11.4-14z" fill="url(#gCup)" stroke="#D6C9B4" stroke-width="1.1" stroke-linejoin="round"/>`;
+  out += ell(20, 18.6, 11.4, 3.4, '#F2E6CE');
+  out += `<path d="M15.4 18.2c1-1.8 3-1.8 4 0M21 20c.9-1.5 2.5-1.5 3.4 0" stroke="#DCCBA6" stroke-width="1.2" fill="none" stroke-linecap="round"/>`;
+  if(/皮蛋/.test(v.name)) out += `<circle cx="16" cy="18" r="1.4" fill="#6E6A55"/><circle cx="23.6" cy="19" r="1.2" fill="#6E6A55"/>`;
+  if(/雪菜|笋/.test(v.name)) out += `<path d="M17.6 17.2c1.4-1 3-1 4.4 0" stroke="#7FA94F" stroke-width="1.1" fill="none" stroke-linecap="round"/>`;
+  out += `<path d="M16.6 12c1.3-2-1-3-.3-4.6M23 12c1.3-2-1-3-.3-4.6" stroke="#D8CBB6" stroke-width="1.1" fill="none" stroke-linecap="round"/>`;
+  return svgWrap(out);
+};
+
+/* 甜品块：拉明顿（椰丝方块）/ 奶冻 / 爆珠 */
+ART.cake = v => {
+  const berry = /草莓/.test(v.name);
+  const base = berry ? 'url(#gBerry)' : /柠檬/.test(v.name) ? '#F2D06A' : 'url(#gChoco)';
+  let out = rr(8.4, 14.4, 23.2, 17.6, 3.4, base, ' stroke="#00000022" stroke-width="1"');
+  out += `<path d="M8.4 17.8h23.2" stroke="#FFFFFF" stroke-width="1" opacity=".35"/>`;
+  if(/奶冻|爆珠/.test(v.name)){
+    out += rr(8.4, 20.4, 23.2, 5, .8, '#FFFFFF', ' opacity=".55"');
+    out += `<circle cx="14" cy="27" r="2" fill="#F7B7CB"/><circle cx="20" cy="28.4" r="2" fill="#F7B7CB"/><circle cx="26" cy="26.6" r="2" fill="#F7B7CB"/>`;
+  } else {
+    for(const [x,y] of [[13,19],[20,22],[26.6,18.4],[16,26],[23,27.4]]){
+      out += `<circle cx="${x}" cy="${y}" r="1.4" fill="#FDF7EC" opacity=".95"/>`;
+    }
+  }
+  return svgWrap(out);
+};
+
+/* 水瓶 */
+ART.bottle = v => {
+  let out = rr(14.6, 6, 10.8, 4.6, 2, '#7FC3E8');
+  out += `<path d="M15 10.8h10v21.2a3.4 3.4 0 0 1-3.4 3.4h-3.2A3.4 3.4 0 0 1 15 32z" fill="#E3F2FA" stroke="#9CC7DD" stroke-width="1.1"/>`;
+  out += rr(16.4, 18.6, 7.2, 8, 1.4, '#BFE0F0');
+  out += `<path d="M17.6 22.2h4.8M20 20.8v5" stroke="#FFFFFF" stroke-width="1.1" fill="none"/>`;
+  return svgWrap(out);
+};
+
+/* 牛奶盒 */
+ART.milkbox = v => {
+  let out = `<path d="M13 13.6 20 8.6l7 5V33a1.6 1.6 0 0 1-1.6 1.6H14.6A1.6 1.6 0 0 1 13 33z" fill="url(#gCup)" stroke="#CFC3B0" stroke-width="1.1" stroke-linejoin="round"/>`;
+  out += `<path d="M13 13.6h14M20 8.6v5" stroke="#CFC3B0" stroke-width="1.1" fill="none"/>`;
+  out += rr(15.4, 19, 9.2, 9, 1.6, '#8FCBE8');
+  out += `<path d="M17 23.5h6" stroke="#FFFFFF" stroke-width="1.2" fill="none"/>`;
+  out += `<circle cx="20" cy="27.6" r="1.6" fill="#FFFFFF" opacity=".8"/>`;
+  return svgWrap(out);
+};
+
+/* 果汁盒 */
+ART.juicebox = v => {
+  let out = `<path d="M12.6 14.6 20 9.6l7.4 5V33a1.6 1.6 0 0 1-1.6 1.6H14.2A1.6 1.6 0 0 1 12.6 33z" fill="url(#gCup)" stroke="#CFC3B0" stroke-width="1.1" stroke-linejoin="round"/>`;
+  out += `<path d="M12.6 14.6h14.8M20 9.6v5" stroke="#CFC3B0" stroke-width="1.1" fill="none"/>`;
+  out += rr(15, 19.4, 10, 9.4, 1.6, /柠|橙橙/.test(v.name) ? 'url(#gTea)' : '#F2B33A');
+  out += rr(21, 10.6, 2.4, 8.4, 1.2, '#DA291C', ' transform="rotate(18 22 14)"');
+  return svgWrap(out);
+};
+
+/* ---------- 出图：官方实拍优先，手绘兜底 ---------- */
+function iconHTML(name, cls){
+  const sp = specOf(name);
+  const ph = PHOTOS[name];
+  const art = (ART[sp.kind] || ART.burger)(sp);
+  const img = ph
+    ? `<img class="fp" src="${ph.src}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('nop')">`
+    : '';
+  return `<span class="${cls}${ph ? '' : ' nop'}" style="--s:${sp.scale.toFixed(2)}">${img}<span class="fdr">${art}</span></span>`;
+}
+function foodIcon(name){ return (ART[specOf(name).kind] || ART.burger)(specOf(name)); }
 
 function renderCats(){
   $('cats').innerHTML = CATS.map(c =>
@@ -1177,7 +1620,7 @@ function renderGrid(){
     const pct = Math.min(i.energyKcal/800, 1) * 100;
     const nm = i.productName.replace(/"/g,'&quot;');
     return `<button class="item ${picked.has(i.productName)?'picked':''}" data-n="${nm}" title="${nm} · ${i.energyKcal} kcal">
-      <span class="ic">${foodIcon(i.productName)}</span>
+      ${iconHTML(i.productName,'ic')}
       <span class="col"><span class="nm">${i.productName}</span></span>
       <span class="kc"><span>${i.energyKcal} kcal</span><span>蛋白 ${i.protein}g</span></span>
       <span class="bar"><i style="width:${pct}%;background:${kcalColor(i.energyKcal)}"></i></span>
@@ -1198,7 +1641,7 @@ function renderBasket(){
     $('basket').innerHTML = `<div class="basketempty">还没选餐品 —— 想在点餐前先看看这顿怎么样？挑两样凑一顿试试。</div>`;
   } else {
     $('basket').innerHTML = BASKET.map((i,idx) =>
-      `<span class="bchip"><span class="icv">${foodIcon(i.productName)}</span>${i.productName} <em>${i.energyKcal}kcal</em>
+      `<span class="bchip">${iconHTML(i.productName,'icv')}${i.productName} <em>${i.energyKcal}kcal</em>
         <button class="bx" data-i="${idx}" title="移除" aria-label="移除">×</button></span>`
     ).join('');
     $('basket').querySelectorAll('.bx').forEach(b => b.onclick = (e) => {
@@ -1214,10 +1657,10 @@ function renderKV(n){
   $('kv').innerHTML = FIELDS.map(f =>
     `<div><span>${f.label}</span><b>${Math.round(n[f.k]||0)}<i>${f.unit}</i></b></div>`
   ).join('');
-  const ic = (BASKET.length > 1)
-    ? [...new Set(BASKET.map(i => iconKeyOf(i.productName)))].slice(0,3)
-        .map(k => `<span class="ni">${ICONS[k]}</span>`).join('')
-    : `<span class="ni">${foodIcon(n.productName)}</span>`;
+  const names = (BASKET.length > 1)
+    ? [...new Set(BASKET.map(i => i.productName))].slice(0, 3)
+    : [n.productName || '整餐'];
+  const ic = names.map(x => iconHTML(x, 'ni')).join('');
   $('nName').innerHTML = ic + n.productName;
 }
 
@@ -1455,7 +1898,7 @@ function renderAnalysis(){
     $('bigUnit').textContent = '等待喂食';
     $('scoreFor').textContent = '—';
     $('ringArc').setAttribute('stroke-dashoffset', 282.7);
-    $('grade').innerHTML = '<b>还没选东西</b>先在「喂麦麦」挑餐品加进「这一餐」，我就能算出这顿对麦麦的影响。';
+    $('grade').innerHTML = '<b>还没选东西</b>先在「记录」挑餐品加进「这一餐」，我就能算出这顿的热量与营养。';
     $('advice').innerHTML = '💡 健康分由蛋白质（30）、热量（25）、钠（20）、脂肪（15）、碳水（10）五项加权得到，满分 100。';
     $('advisor').innerHTML = '';
     return;
@@ -1464,33 +1907,209 @@ function renderAnalysis(){
   renderKV(n); renderBars(n); renderRadar(n); renderScore(n); renderTags(n);
 }
 
-/* ---------- MCP 功能卡 ---------- */
-const MCP_TASKS = [
-  { icon:'🎟', t:'一键领券', d:'把麦麦省里当前可领的券一次性收进卡包。', q:'用麦当劳 MCP 帮我领一下当前能领的优惠券（auto-bind-coupons）' },
-  { icon:'📅', t:'活动日历', d:'看看这个月有什么活动、什么时候开始。', q:'用麦当劳 MCP 查一下本月麦当劳的营销活动日历（campaign-calendar）' },
-  { icon:'📍', t:'附近门店', d:'找出能喂麦麦的最近门店。', q:'用麦当劳 MCP 查一下我附近可以到店自取的门店（query-nearby-stores，city=宁波市，keyword=海曙区）' },
-  { icon:'🧾', t:'历史订单', d:'看看最近都喂了麦麦什么，结果可贴到下方生成报告。', q:'用麦当劳 MCP 调 order-list，把返回的原始 JSON 给我' }
-];
-function renderMcp(){
-  $('mcpCards').innerHTML = MCP_TASKS.map((m,i) => `
-    <div class="mcpcard">
-      <div class="hd"><i>${m.icon}</i>${m.t}</div>
-      <p>${m.d}</p>
-      <code id="q${i}">${m.q}</code>
-      <div class="acts">
-        <button class="btn" data-copy="${i}">复制指令</button>
-        <button class="btn ghost" data-send="${i}">怎么用？</button>
-      </div>
-    </div>`).join('');
+/* =========================================================
+   实时排行榜
+   进入页面自动拉一次，也可以手点「刷新」。
+   数据源按顺序尝试（都不需要 Token，且都开了 CORS）：
+     ① raw.githubusercontent.com → RANKING.md 原文
+     ② cdn.jsdelivr.net          → 同一文件的镜像
+     ③ api.github.com            → contents 接口（返回 base64）
+   先显缓存再后台刷新；三条路都失败时退回「构建时内置的快照」，
+   所以离线状态下这个面板依然有内容，不会开天窗。
+   ========================================================= */
+const RANK_CACHE_KEY = 'mcpet.rank.v1';
+const RANK_TTL = 30 * 60 * 1000;
+const RANK_TOP_N = 30;
+const RANK_TIMEOUT = 5000;   // 单个数据源的超时上限，避免网络挂住时面板一直空转
+let RANK_FETCHING = false;
+let RANK_SHOW_ALL = false;
 
-  $('mcpCards').querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
-    const q = MCP_TASKS[+b.dataset.copy].q;
-    try { await navigator.clipboard.writeText(q); toast('指令已复制，去 WorkBuddy 粘贴执行'); }
-    catch { toast('复制失败，请手动选中上方指令复制'); }
+const esc = s => String(s == null ? '' : s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function decodeB64Utf8(b64){
+  const bin = atob(String(b64).replace(/\s+/g,''));
+  const buf = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) buf[i] = bin.charCodeAt(i);
+  return new TextDecoder('utf-8').decode(buf);
+}
+
+/* 解析 RANKING.md 的表格 —— 不依赖网络，所以可以单独断言 */
+function parseRanking(md){
+  const rows = [];
+  String(md || '').split('\n').forEach(line => {
+    if(line.indexOf('|') < 0) return;
+    const c = line.replace(/^\s*\|/, '').replace(/\|\s*$/, '').split('|').map(x => x.trim());
+    if(c.length < 4) return;
+    if(!/^\d+$/.test(c[0]) || !/^\d+$/.test(c[3])) return;
+    rows.push({ rank:+c[0], name:c[1], stars:+c[3] });
   });
-  $('mcpCards').querySelectorAll('[data-send]').forEach(b => b.onclick = () => {
-    toast('在 WorkBuddy 对话框粘贴这条指令即可，结果可贴回「饮食报告」');
-  });
+  const upd = (String(md || '').match(/更新时间：\s*(.+)/) || [])[1] || '';
+  return { rows, updated: upd.trim() };
+}
+function repoOf(name){
+  return RANK_INDEX.repos[String(name || '').toLowerCase()] || '';
+}
+function readRankCache(){
+  try {
+    const o = JSON.parse(localStorage.getItem(RANK_CACHE_KEY) || 'null');
+    if(o && o.rows && o.rows.length && (Date.now() - (o.at || 0)) < RANK_TTL) return o;
+  } catch(e){}
+  return null;
+}
+function writeRankCache(d){
+  try { localStorage.setItem(RANK_CACHE_KEY, JSON.stringify({ rows:d.rows, updated:d.updated, at:Date.now() })); } catch(e){}
+}
+
+/* 每个源都带超时：网络被墙/挂起时不能让面板无限转圈 */
+async function fetchWithTimeout(url, opts, ms){
+  const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = ctl ? setTimeout(() => ctl.abort(), ms || RANK_TIMEOUT) : null;
+  try {
+    return await fetch(url, Object.assign({ cache:'no-store' }, opts || {}, ctl ? { signal:ctl.signal } : {}));
+  } finally {
+    if(timer) clearTimeout(timer);
+  }
+}
+
+async function fetchRanking(){
+  const urls = [
+    RANK_INDEX.sourceUrl,
+    'https://cdn.jsdelivr.net/gh/M-China/mcd-developer-innovation-challenge@main/RANKING.md'
+  ];
+  for(const u of urls){
+    if(!u) continue;
+    try {
+      const r = await fetchWithTimeout(u + (u.indexOf('?') < 0 ? '?t=' + Date.now() : ''));
+      if(!r.ok) continue;
+      const p = parseRanking(await r.text());
+      if(p.rows.length) return Object.assign(p, { via:(u.indexOf('jsdelivr') > 0 ? 'jsdelivr' : 'raw') });
+    } catch(e){}
+  }
+  try {
+    const r = await fetchWithTimeout(RANK_INDEX.repoIndexUrl + '?t=' + Date.now(),
+      { headers:{ 'Accept':'application/vnd.github+json' } });
+    if(r.ok){
+      const j = await r.json();
+      const p = parseRanking(decodeB64Utf8(j.content || ''));
+      if(p.rows.length) return Object.assign(p, { via:'api.github.com' });
+    }
+  } catch(e){}
+  return null;
+}
+
+function rankDot(cls, state, meta){
+  $('rkDot').className = 'rkdot' + (cls ? ' ' + cls : '');
+  if(state != null) $('rkState').textContent = state;
+  if(meta != null) $('rkMeta').textContent = meta;
+}
+
+function renderRankMine(rows){
+  const mine = String(RANK_INDEX.myRepo || '').toLowerCase();
+  const my = rows.filter(r => repoOf(r.name).toLowerCase() === mine)[0];
+  const gate = rows.length ? rows[rows.length - 1].stars : 0;
+  const box = (a,b,c,d) => `<div class="statgrid">
+      <div><span>当前名次</span><b>${a}</b></div>
+      <div><span>星数</span><b id="rkMyStars">${b}</b></div>
+      <div><span>进榜门槛</span><b>${c} ★</b></div>
+      <div><span>${d[0]}</span><b id="rkGap">${d[1]}</b></div>
+    </div>`;
+  const foot = `<div class="rklinks">`
+    + `<a href="https://github.com/${esc(RANK_INDEX.myRepo)}" target="_blank" rel="noopener">`
+    + `我的仓库 <code>${esc(RANK_INDEX.myRepo)}</code> ↗</a>`
+    + `<span>官方规则：按 Star 数排名，0 ★ 不进榜</span></div>`;
+  $('rkMine').innerHTML = (my
+    ? box('第 ' + my.rank + ' 名', my.stars + ' ★', gate, ['状态', '已进榜'])
+    : box('<span style="color:#B32216">未进榜</span>', '…', gate, ['还差', '…'])) + foot;
+  if(!my) loadMyStars(gate);
+}
+
+async function loadMyStars(gate){
+  const set = (s, gap) => {
+    const a = $('rkMyStars'), b = $('rkGap');
+    if(a) a.textContent = s;
+    if(b) b.textContent = gap;
+  };
+  try {
+    const r = await fetchWithTimeout('https://api.github.com/repos/' + RANK_INDEX.myRepo,
+      { headers:{ 'Accept':'application/vnd.github+json' } });
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const s = (await r.json()).stargazers_count | 0;
+    set(s + ' ★', s >= gate ? '已达标' : '还差 ' + (gate - s) + ' ★');
+  } catch(e){
+    set('—', '以仓库为准');
+  }
+}
+
+function renderRankRows(rows){
+  const cut = RANK_SHOW_ALL ? rows.length : Math.min(RANK_TOP_N, rows.length);
+  const mine = String(RANK_INDEX.myRepo || '').toLowerCase();
+  $('rkList').innerHTML = rows.slice(0, cut).map(r => {
+    const full = repoOf(r.name);
+    const me = full && full.toLowerCase() === mine;
+    const inner = `<span class="n">${r.rank}</span>`
+      + `<span class="nm">${esc(r.name)}${me ? '<i>我</i>' : ''}</span>`
+      + `<span class="st">${r.stars}<em>★</em></span>`;
+    return full
+      ? `<a class="rkrow${me ? ' me' : ''}" href="https://github.com/${full}" target="_blank" rel="noopener" title="打开 ${full}">${inner}</a>`
+      : `<div class="rkrow nolink" title="这一项没匹配到仓库地址">${inner}</div>`;
+  }).join('');
+
+  const more = rows.length > cut
+    ? `<button class="rkmore" id="rkMore">展开全部（还有 ${rows.length - cut} 项）</button>`
+    : (RANK_SHOW_ALL && rows.length > RANK_TOP_N ? `<button class="rkmore" id="rkMore">收起</button>` : '');
+  $('rkList').insertAdjacentHTML('beforeend', more);
+  const btn = $('rkMore');
+  if(btn) btn.onclick = () => { RANK_SHOW_ALL = !RANK_SHOW_ALL; renderRankRows(rows); };
+  renderRankMine(rows);
+}
+
+function showRank(data, kind, suffix){
+  RANK_SHOW_ALL = false;
+  renderRankRows(data.rows);
+  const live = kind === 'live';
+  rankDot(live ? 'live' : 'cache', live ? '实时' : '缓存',
+    `更新于 ${data.updated || '—'} · ${data.rows.length} 个在榜项目${suffix ? ' ' + suffix : ''}`);
+}
+
+async function refreshRank(force){
+  if(RANK_FETCHING) return;
+  RANK_FETCHING = true;
+  const cached = readRankCache();
+  const snap = (RANK_INDEX.snapshot && RANK_INDEX.snapshot.length)
+    ? { rows:RANK_INDEX.snapshot, updated:RANK_INDEX.updated } : null;
+
+  /* 先给内容、再后台刷新 —— 无论网络多慢，面板都不会开天窗 */
+  if(cached && !force) showRank(cached, 'cache', '（先显示缓存，正在更新）');
+  else if(snap) showRank(snap, 'cache', '（先显示内置快照，正在更新）');
+  else rankDot('', '正在获取…', '排行榜加载中…');
+
+  const live = await fetchRanking();
+  RANK_FETCHING = false;
+
+  if(live){
+    writeRankCache(live);
+    showRank(live, 'live');
+    return;
+  }
+  if(cached){ showRank(cached, 'cache', '（离线，显示上次缓存）'); return; }
+  if(snap){ showRank(snap, 'cache', '（离线，显示内置快照）'); return; }
+  rankDot('dead', '取不到数据', '网络不可用 —— 稍后点「刷新」重试');
+  $('rkList').innerHTML = '<div class="empty">暂时取不到榜单数据，点右上角「刷新」重试。</div>';
+}
+
+function initRank(){
+  $('rkRefresh').onclick = () => { toast('正在刷新榜单…'); refreshRank(true); };
+  $('rkSrc').href = RANK_INDEX.sourceUrl && RANK_INDEX.sourceUrl.indexOf('githubusercontent') > 0
+    ? 'https://github.com/M-China/mcd-developer-innovation-challenge/blob/main/RANKING.md'
+    : $('rkSrc').href;
+  $('disc3').innerHTML = '<b>数据出处：</b>榜单实时读取比赛仓库的 <code>RANKING.md</code>'
+    + `（每小时更新一次，官方维护），点任一行跳到对应 GitHub 仓库。`
+    + `仓库地址来自比赛报名的 Issue 清单，共 ${Object.keys(RANK_INDEX.repos).length} 个映射；`
+    + '没匹配到的项目只显示名称、不给链接（不猜、不编造）。'
+    + `<br><b>离线兜底：</b>取不到网络时展示构建时内置的快照（${RANK_INDEX.updated || '—'}）。`
+    + '本项目仓库：<code>' + RANK_INDEX.myRepo + '</code>';
+  refreshRank(false);
 }
 
 /* ---------- 饮食报告 ---------- */
@@ -1567,7 +2186,7 @@ function renderShareCard(){
   g.fillText('麦麦养成卡', W/2, 84);
   g.fillStyle = '#9C8B76';
   g.font = '400 20px system-ui,"Microsoft YaHei",sans-serif';
-  g.fillText('麦麦宠物 McPet · 点麦当劳就是喂宠物', W/2, 120);
+  g.fillText('麦麦营养账本 McPet · 记录每一顿麦当劳', W/2, 120);
 
   /* 宠物 */
   g.save();
@@ -1814,7 +2433,7 @@ addEventListener('keydown', e => {
   loadState();
   $('total').textContent = NUTRITION.count;
 
-  renderCats(); renderGrid(); renderMcp();
+  renderCats(); renderGrid(); initRank();
   renderBasket(); renderAnalysis();
   renderMini(); renderToday(); renderGrowth();
   $('bubble').textContent = IDLE_LINE[moodIdle()];
