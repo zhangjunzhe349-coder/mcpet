@@ -93,7 +93,8 @@ class CDP {
         this.consoleErrors.push(msg.params.args.map(a => a.value ?? a.description ?? '').join(' '));
       }
       if (msg.method === 'Log.entryAdded' && msg.params.entry.level === 'error') {
-        this.logErrors.push(msg.params.entry.text);
+        const e = msg.params.entry;
+        this.logErrors.push(e.url ? `${e.text} @ ${e.url}` : e.text);
       }
     });
   }
@@ -202,6 +203,7 @@ async function waitReady(cdp, timeoutLoops = 60) {
     check('无资源加载失败', realLogErr.length === 0, realLogErr.slice(0, 3).join(' | '));
 
     console.log('\n【3】渲染产物');
+    await sleep(400);   // 等首屏官方白底图解码完成
     const render = await cdp.ev(`(() => {
       const c = document.getElementById('pet');
       const ctx = c.getContext('2d');
@@ -224,6 +226,8 @@ async function waitReady(cdp, timeoutLoops = 60) {
         iconMiss: NUTRITION.items.filter(i => !/^<svg/.test(foodIcon(i.productName) || '')).length,
         photoCover: Object.keys(PHOTOS).length,
         photoTotal: PHOTO_META.total,
+        cellBgs: [...document.querySelectorAll('#grid .item .ic')].map(e => getComputedStyle(e).backgroundColor),
+        gridImgs: [...document.querySelectorAll('#grid .item .ic .fp')].map(i => i.complete && i.naturalWidth > 0),
         title: document.title,
         brand: (document.querySelector('.brand div') || {}).textContent || '',
         mcpLeft: document.querySelectorAll('#mcpCards, .mcpcard').length,
@@ -264,7 +268,13 @@ async function waitReady(cdp, timeoutLoops = 60) {
     check('每张餐品卡都带视觉图标（实拍图或手绘）', render && (render.gridArt === render.grid) && render.grid > 0, `art=${render && render.gridArt}/${render && render.grid}`);
     check('图标覆盖全部 158 条（手绘兜底无落空）', render && render.iconMiss === 0, 'miss=' + (render && render.iconMiss));
     check('图标具备足够的品类区分度（≥12 类）', render && render.iconKinds >= 12, 'kinds=' + (render && render.iconKinds));
-    check('已内置麦当劳官方白底图（≥50 条）', render && render.photoCover >= 50, `photos=${render && render.photoCover}/${render && render.photoTotal}`);
+    check('已内置麦当劳官方白底图（≥120 条）', render && render.photoCover >= 120, `photos=${render && render.photoCover}/${render && render.photoTotal}`);
+    check('图格统一白底（官方图与手绘兜底同底色，不再混杂米底）',
+      render && render.cellBgs.length > 0 && render.cellBgs.every(c => c === 'rgb(255, 255, 255)'),
+      'n=' + (render && render.cellBgs.length) + ' 非白=' + (render ? render.cellBgs.filter(c => c !== 'rgb(255, 255, 255)').length : '?'));
+    check('首屏官方白底图真实加载成功（未回落到手绘）',
+      render && render.gridImgs.length > 0 && render.gridImgs.every(Boolean),
+      `已加载 ${render ? render.gridImgs.filter(Boolean).length : '?'}/${render ? render.gridImgs.length : '?'}`);
     check('无官方图时自动落到手绘图标（互斥渲染）', render && (render.gridNoPhoto + render.gridPhotos === render.grid), `photo=${render && render.gridPhotos} 手绘=${render && render.gridNoPhoto}`);
     check('同品类不同规格画得不一样（小/大薯条 · 4/5块鸡块 · 香芋/菠萝派 · 小/大杯）',
       render && render.sizeDiff.every(Boolean), 'diff=' + JSON.stringify(render && render.sizeDiff));

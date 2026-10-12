@@ -1,330 +1,768 @@
 {
  "source": "麦当劳中国官方点餐菜单（MCP query-meals / menu-img.mcd.cn）",
- "store": "1420576",
- "storeName": "1420576",
- "fetched_at": "2026-10-11 23:42:42",
- "count": 64,
+ "stores": [
+  "(离线)"
+ ],
+ "storeName": "(离线)",
+ "fetched_at": "2026-10-12 12:00:14",
+ "count": 126,
  "total_items": 158,
  "photos": {
   "中薯条": {
    "src": "assets/food/中薯条.webp",
    "from": "薯条",
-   "how": "stripped"
+   "how": "stripped",
+   "sha1": "04adb97daa91fc677b556e99d68385541b7be451"
   },
   "大薯条": {
    "src": "assets/food/中薯条.webp",
    "from": "薯条",
-   "how": "stripped"
+   "how": "stripped",
+   "sha1": "04adb97daa91fc677b556e99d68385541b7be451"
   },
   "小薯条": {
    "src": "assets/food/中薯条.webp",
    "from": "薯条",
-   "how": "stripped"
+   "how": "stripped",
+   "sha1": "04adb97daa91fc677b556e99d68385541b7be451"
   },
   "迷你薯条": {
    "src": "assets/food/中薯条.webp",
    "from": "薯条",
-   "how": "stripped"
+   "how": "stripped",
+   "sha1": "04adb97daa91fc677b556e99d68385541b7be451"
   },
   "圆筒冰淇淋": {
    "src": "assets/food/圆筒冰淇淋.webp",
    "from": "圆筒冰淇淋",
-   "how": "exact"
+   "how": "exact",
+   "sha1": "b20f23d483fe62b5f46b4eacd3fa6aff221c44ed"
   },
   "麦乐鸡5块": {
    "src": "assets/food/麦乐鸡5块.webp",
    "from": "麦乐鸡",
-   "how": "stripped"
+   "how": "alias",
+   "sha1": "17d45198a76a3f711739547f4280ab2208cd734a"
   },
   "大杯玉米杯": {
    "src": "assets/food/大杯玉米杯.webp",
    "from": "玉米杯",
-   "how": "stripped"
+   "how": "stripped",
+   "sha1": "ea8e7b1982891cb78b5ebe6083dfe2df9dddd38a"
   },
   "小杯玉米杯": {
    "src": "assets/food/大杯玉米杯.webp",
    "from": "玉米杯",
-   "how": "stripped"
+   "how": "stripped",
+   "sha1": "ea8e7b1982891cb78b5ebe6083dfe2df9dddd38a"
   },
   "麦辣鸡翅-2块": {
    "src": "assets/food/麦辣鸡翅2块.webp",
    "from": "麦辣鸡翅",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "fc6be726e317f69c17487c837eb130241527e80d"
   },
   "朱古力新地": {
    "src": "assets/food/朱古力新地.webp",
    "from": "新地",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "1ba00b23c6fa245264e72c81a3c248ff5cd06502"
   },
   "草莓新地": {
    "src": "assets/food/朱古力新地.webp",
    "from": "新地",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "1ba00b23c6fa245264e72c81a3c248ff5cd06502"
   },
   "奥利奥麦旋风": {
    "src": "assets/food/奥利奥麦旋风.webp",
    "from": "经典麦旋风",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "403e26cf104f169f464892f8b5d9ae5385e1c5f1"
   },
   "草莓麦旋风": {
    "src": "assets/food/奥利奥麦旋风.webp",
    "from": "经典麦旋风",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "403e26cf104f169f464892f8b5d9ae5385e1c5f1"
   },
   "香芋派": {
    "src": "assets/food/香芋派.webp",
    "from": "派",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "008fea9809fd3519dfbb20223bed4173f02949d2"
   },
   "菠萝派": {
    "src": "assets/food/香芋派.webp",
    "from": "派",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "008fea9809fd3519dfbb20223bed4173f02949d2"
+  },
+  "吉士汉堡包": {
+   "src": "assets/food/吉士汉堡包.webp",
+   "from": "汉堡开心乐园餐",
+   "how": "alias",
+   "sha1": "afccbbf0a84a257d387d2b0dad48a6fc61c73d5e"
   },
   "双层吉士汉堡": {
    "src": "assets/food/双层吉士汉堡.webp",
    "from": "双层吉士汉堡",
-   "how": "exact"
+   "how": "exact",
+   "sha1": "5325019f4f684e69aee8f5b690169c4e57451090"
   },
   "麦香鸡": {
    "src": "assets/food/麦香鸡.webp",
    "from": "麦香鸡",
-   "how": "exact"
+   "how": "exact",
+   "sha1": "f218d7012012a7cf548d44fada0b91a5018a3697"
   },
   "麦香鱼": {
    "src": "assets/food/麦香鱼.webp",
    "from": "麦香鱼",
-   "how": "exact"
+   "how": "exact",
+   "sha1": "519a6188cb8deede9753b3dccd8aa6737396088a"
   },
   "麦辣鸡腿汉堡": {
    "src": "assets/food/麦辣鸡腿汉堡.webp",
    "from": "麦辣鸡腿汉堡",
-   "how": "exact"
+   "how": "exact",
+   "sha1": "497055d3b5192854f77178b3ee581588404660e3"
   },
   "板烧鸡腿堡": {
    "src": "assets/food/板烧鸡腿堡.webp",
    "from": "板烧鸡腿堡",
-   "how": "exact"
+   "how": "exact",
+   "sha1": "7199f013832f52726a818670f3a647282a158291"
   },
   "巨无霸": {
    "src": "assets/food/巨无霸.webp",
    "from": "巨无霸",
-   "how": "exact"
+   "how": "exact",
+   "sha1": "dc0b519f306912a341ab5793a013642f3666c385"
   },
   "培根蔬萃双层牛堡": {
    "src": "assets/food/培根蔬萃双层牛堡.webp",
    "from": "培根蔬萃双层牛堡",
-   "how": "exact"
+   "how": "exact",
+   "sha1": "1bca6f587e1bf908c4e942b63fa54be42f8fbf68"
   },
   "可乐中杯": {
    "src": "assets/food/可乐中杯.webp",
    "from": "可乐",
-   "how": "stripped"
+   "how": "stripped",
+   "sha1": "c8e845a1497069a73841a54ec753e354e555298e"
   },
   "可乐大杯": {
    "src": "assets/food/可乐中杯.webp",
    "from": "可乐",
-   "how": "stripped"
+   "how": "stripped",
+   "sha1": "c8e845a1497069a73841a54ec753e354e555298e"
   },
   "可乐小杯": {
    "src": "assets/food/可乐中杯.webp",
    "from": "可乐",
-   "how": "stripped"
+   "how": "stripped",
+   "sha1": "c8e845a1497069a73841a54ec753e354e555298e"
   },
   "雪碧中杯": {
    "src": "assets/food/雪碧中杯.webp",
    "from": "雪碧",
-   "how": "stripped"
+   "how": "stripped",
+   "sha1": "ad5f6e9c1eb3b96683fbd99be2839f79950c3077"
   },
   "雪碧大杯": {
    "src": "assets/food/雪碧中杯.webp",
    "from": "雪碧",
-   "how": "stripped"
+   "how": "stripped",
+   "sha1": "ad5f6e9c1eb3b96683fbd99be2839f79950c3077"
   },
   "雪碧小杯": {
    "src": "assets/food/雪碧中杯.webp",
    "from": "雪碧",
-   "how": "stripped"
+   "how": "stripped",
+   "sha1": "ad5f6e9c1eb3b96683fbd99be2839f79950c3077"
+  },
+  "无糖可口可乐中杯": {
+   "src": "assets/food/可乐中杯.webp",
+   "from": "可乐",
+   "how": "alias",
+   "sha1": "c8e845a1497069a73841a54ec753e354e555298e"
+  },
+  "无糖可口可乐大杯": {
+   "src": "assets/food/可乐中杯.webp",
+   "from": "可乐",
+   "how": "alias",
+   "sha1": "c8e845a1497069a73841a54ec753e354e555298e"
+  },
+  "无糖可口可乐小杯": {
+   "src": "assets/food/可乐中杯.webp",
+   "from": "可乐",
+   "how": "alias",
+   "sha1": "c8e845a1497069a73841a54ec753e354e555298e"
   },
   "大杯鲜萃咖啡": {
    "src": "assets/food/大杯鲜萃咖啡.webp",
    "from": "鲜萃咖啡",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "77f793a710d17d76bdd172f0f5c76c41eaa5694d"
   },
   "小杯鲜萃咖啡": {
    "src": "assets/food/大杯鲜萃咖啡.webp",
    "from": "鲜萃咖啡",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "77f793a710d17d76bdd172f0f5c76c41eaa5694d"
   },
   "锡兰红茶": {
    "src": "assets/food/锡兰红茶.webp",
    "from": "锡兰红茶",
-   "how": "exact"
+   "how": "exact",
+   "sha1": "e4077f97d459c1402cab5b41aa76880803293642"
   },
   "纯牛奶（盒装）": {
    "src": "assets/food/纯牛奶盒装.webp",
    "from": "纯牛奶(盒装)",
-   "how": "exact"
+   "how": "exact",
+   "sha1": "de87908707b0e015d062a5a4b85f70976489aa9d"
   },
   "麦旋酷阳光橙": {
    "src": "assets/food/麦旋酷阳光橙.webp",
-   "from": "【美汁源】“黄金橙橙”",
-   "how": "alias"
+   "from": "阳光橙麦炫酷",
+   "how": "alias",
+   "sha1": "64babeae920dfa7fb080071a0d41c858cd757d1a"
   },
   "浓缩咖啡": {
    "src": "assets/food/大杯鲜萃咖啡.webp",
    "from": "鲜萃咖啡",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "77f793a710d17d76bdd172f0f5c76c41eaa5694d"
   },
   "那么大鸡排": {
    "src": "assets/food/那么大鸡排.webp",
    "from": "那么大鸡排（椒盐风味）",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "67e34644bca94f54bfab67a423fb963c81fd5cd6"
   },
   "阳光柠檬红茶中杯": {
    "src": "assets/food/阳光柠檬红茶中杯.webp",
    "from": "阳光柠檬红茶",
-   "how": "stripped"
+   "how": "stripped",
+   "sha1": "783d7cdd6ebec37b98d891debb69a9e6e85bfa6f"
   },
   "阳光柠檬红茶大杯": {
    "src": "assets/food/阳光柠檬红茶中杯.webp",
    "from": "阳光柠檬红茶",
-   "how": "stripped"
+   "how": "stripped",
+   "sha1": "783d7cdd6ebec37b98d891debb69a9e6e85bfa6f"
   },
   "阳光柠檬红茶小杯": {
    "src": "assets/food/阳光柠檬红茶中杯.webp",
    "from": "阳光柠檬红茶",
-   "how": "stripped"
+   "how": "stripped",
+   "sha1": "783d7cdd6ebec37b98d891debb69a9e6e85bfa6f"
   },
   "脆薯饼": {
    "src": "assets/food/脆薯饼.webp",
-   "from": "脆薯饼",
-   "how": "exact"
+   "from": "心形薯饼5块",
+   "how": "alias",
+   "sha1": "2f164e2db8389c8b02dbcc91452e3b2bcd0c537a"
   },
   "100%苹果汁": {
    "src": "assets/food/100苹果汁.webp",
    "from": "100% 苹果汁(盒装)",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "b307e094081733ada8cd2368a3d9e2069b844300"
   },
   "汉堡包": {
-   "src": "assets/food/汉堡包.webp",
+   "src": "assets/food/吉士汉堡包.webp",
    "from": "汉堡开心乐园餐",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "afccbbf0a84a257d387d2b0dad48a6fc61c73d5e"
   },
   "麦乐鸡4块": {
    "src": "assets/food/麦乐鸡5块.webp",
    "from": "麦乐鸡",
-   "how": "stripped"
+   "how": "alias",
+   "sha1": "17d45198a76a3f711739547f4280ab2208cd734a"
   },
   "纯悦": {
    "src": "assets/food/纯悦.webp",
    "from": "纯悦",
-   "how": "exact"
+   "how": "exact",
+   "sha1": "09a7ea2adfba5987279cd51b2d84376cb55aeb04"
+  },
+  "苹果片": {
+   "src": "assets/food/苹果片.webp",
+   "from": "苹果片",
+   "how": "exact",
+   "sha1": "7b3ad1e3b2c7c8f58ecfedc1df8361bebd396e41"
   },
   "不素之霸双层牛堡": {
    "src": "assets/food/不素之霸双层牛堡.webp",
    "from": "不素之霸双层牛堡",
-   "how": "exact"
+   "how": "exact",
+   "sha1": "3f785f5a753a32e24791e7d4cfb257428c5006cf"
   },
   "双层深海鳕鱼堡": {
    "src": "assets/food/双层深海鳕鱼堡.webp",
    "from": "双层深海鳕鱼堡",
-   "how": "exact"
+   "how": "exact",
+   "sha1": "c8556f85be9c1792c7aeb8bbc3f6c987c799a9c7"
   },
   "儿童鱼排堡": {
    "src": "assets/food/儿童鱼排堡.webp",
    "from": "鱼排堡开心乐园餐",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "b2734b6626fc9c081f18fadc57729e3c45cfe47d"
   },
   "培根安格斯厚牛堡": {
    "src": "assets/food/培根安格斯厚牛堡.webp",
    "from": "培根安格斯厚牛堡",
-   "how": "exact"
+   "how": "exact",
+   "sha1": "ffa4c7211cd9eda289cd42106089feb2038d8a8f"
   },
   "芝士安格斯厚牛堡": {
    "src": "assets/food/芝士安格斯厚牛堡.webp",
    "from": "芝士安格斯厚牛堡",
-   "how": "exact"
+   "how": "exact",
+   "sha1": "2a05675aa357b9f7ddfd040918241a25c3759019"
+  },
+  "芝士双层安格斯厚牛堡": {
+   "src": "assets/food/芝士安格斯厚牛堡.webp",
+   "from": "芝士安格斯厚牛堡",
+   "how": "alias",
+   "sha1": "2a05675aa357b9f7ddfd040918241a25c3759019"
+  },
+  "培根双层安格斯厚牛堡": {
+   "src": "assets/food/培根安格斯厚牛堡.webp",
+   "from": "培根安格斯厚牛堡",
+   "how": "alias",
+   "sha1": "ffa4c7211cd9eda289cd42106089feb2038d8a8f"
   },
   "麦麦脆汁鸡-琵琶腿": {
    "src": "assets/food/麦麦脆汁鸡琵琶腿.webp",
    "from": "麦麦脆汁鸡1块",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "2d85d36e8743a50a708ca4f7be5ce94b602aef92"
   },
   "麦麦脆汁鸡-带骨里脊": {
    "src": "assets/food/麦麦脆汁鸡琵琶腿.webp",
    "from": "麦麦脆汁鸡1块",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "2d85d36e8743a50a708ca4f7be5ce94b602aef92"
   },
   "【美汁源】“黄金橙橙”": {
-   "src": "assets/food/麦旋酷阳光橙.webp",
+   "src": "assets/food/美汁源黄金橙橙.webp",
    "from": "【美汁源】“黄金橙橙”",
-   "how": "exact"
+   "how": "exact",
+   "sha1": "58fc3bce5195d9433c18ebf0bf0f9f9662b0bacd"
+  },
+  "浓浓黑巧雪冰中杯": {
+   "src": "assets/food/浓浓黑巧雪冰中杯.webp",
+   "from": "浓浓黑巧雪冰",
+   "how": "stripped",
+   "sha1": "c4d40a857764d59885424f2b8aac87baaf70d3a7"
+  },
+  "浓浓黑巧雪冰大杯": {
+   "src": "assets/food/浓浓黑巧雪冰中杯.webp",
+   "from": "浓浓黑巧雪冰",
+   "how": "stripped",
+   "sha1": "c4d40a857764d59885424f2b8aac87baaf70d3a7"
+  },
+  "特浓奶香雪冰中杯": {
+   "src": "assets/food/特浓奶香雪冰中杯.webp",
+   "from": "奶铁雪冰",
+   "how": "alias",
+   "sha1": "da28553614493f9468ea546016c825c54f391471"
+  },
+  "特浓奶香雪冰大杯": {
+   "src": "assets/food/特浓奶香雪冰中杯.webp",
+   "from": "奶铁雪冰",
+   "how": "alias",
+   "sha1": "da28553614493f9468ea546016c825c54f391471"
+  },
+  "浓浓抹茶雪冰中杯": {
+   "src": "assets/food/浓浓抹茶雪冰中杯.webp",
+   "from": "茉莉奶绿雪冰",
+   "how": "alias",
+   "sha1": "9e6d7c0af6d78d9f81c32168b23df7a081fe0da4"
+  },
+  "浓浓抹茶雪冰大杯": {
+   "src": "assets/food/浓浓抹茶雪冰中杯.webp",
+   "from": "茉莉奶绿雪冰",
+   "how": "alias",
+   "sha1": "9e6d7c0af6d78d9f81c32168b23df7a081fe0da4"
+  },
+  "热牛奶中杯": {
+   "src": "assets/food/热牛奶中杯.webp",
+   "from": "牛奶",
+   "how": "core",
+   "sha1": "840d87310b52743c8ec72b8dd009ec35aae738f7"
+  },
+  "热牛奶大杯": {
+   "src": "assets/food/热牛奶中杯.webp",
+   "from": "牛奶",
+   "how": "core",
+   "sha1": "840d87310b52743c8ec72b8dd009ec35aae738f7"
+  },
+  "热牛奶小杯": {
+   "src": "assets/food/热牛奶中杯.webp",
+   "from": "牛奶",
+   "how": "core",
+   "sha1": "840d87310b52743c8ec72b8dd009ec35aae738f7"
+  },
+  "冰牛奶中杯": {
+   "src": "assets/food/热牛奶中杯.webp",
+   "from": "牛奶",
+   "how": "core",
+   "sha1": "840d87310b52743c8ec72b8dd009ec35aae738f7"
+  },
+  "冰牛奶大杯": {
+   "src": "assets/food/热牛奶中杯.webp",
+   "from": "牛奶",
+   "how": "core",
+   "sha1": "840d87310b52743c8ec72b8dd009ec35aae738f7"
+  },
+  "冰牛奶小杯": {
+   "src": "assets/food/热牛奶中杯.webp",
+   "from": "牛奶",
+   "how": "core",
+   "sha1": "840d87310b52743c8ec72b8dd009ec35aae738f7"
+  },
+  "冰奶铁中杯": {
+   "src": "assets/food/冰奶铁中杯.webp",
+   "from": "麦咖啡™奶铁",
+   "how": "core",
+   "sha1": "7bd95c2e2b7de6ab23cda21fcb6342ee00b15432"
+  },
+  "冰奶铁大杯": {
+   "src": "assets/food/冰奶铁中杯.webp",
+   "from": "麦咖啡™奶铁",
+   "how": "core",
+   "sha1": "7bd95c2e2b7de6ab23cda21fcb6342ee00b15432"
+  },
+  "冰奶铁小杯": {
+   "src": "assets/food/冰奶铁中杯.webp",
+   "from": "麦咖啡™奶铁",
+   "how": "core",
+   "sha1": "7bd95c2e2b7de6ab23cda21fcb6342ee00b15432"
+  },
+  "热奶铁中杯": {
+   "src": "assets/food/冰奶铁中杯.webp",
+   "from": "麦咖啡™奶铁",
+   "how": "core",
+   "sha1": "7bd95c2e2b7de6ab23cda21fcb6342ee00b15432"
+  },
+  "热奶铁大杯": {
+   "src": "assets/food/冰奶铁中杯.webp",
+   "from": "麦咖啡™奶铁",
+   "how": "core",
+   "sha1": "7bd95c2e2b7de6ab23cda21fcb6342ee00b15432"
+  },
+  "热奶铁小杯": {
+   "src": "assets/food/冰奶铁中杯.webp",
+   "from": "麦咖啡™奶铁",
+   "how": "core",
+   "sha1": "7bd95c2e2b7de6ab23cda21fcb6342ee00b15432"
+  },
+  "冰燕麦奶铁中杯": {
+   "src": "assets/food/冰燕麦奶铁中杯.webp",
+   "from": "燕麦奶铁",
+   "how": "core",
+   "sha1": "1e9e7c0f06d1627374cfac8cc5b4347096af48e9"
+  },
+  "冰燕麦奶铁大杯": {
+   "src": "assets/food/冰燕麦奶铁中杯.webp",
+   "from": "燕麦奶铁",
+   "how": "core",
+   "sha1": "1e9e7c0f06d1627374cfac8cc5b4347096af48e9"
+  },
+  "冰燕麦奶铁小杯": {
+   "src": "assets/food/冰燕麦奶铁中杯.webp",
+   "from": "燕麦奶铁",
+   "how": "core",
+   "sha1": "1e9e7c0f06d1627374cfac8cc5b4347096af48e9"
+  },
+  "热燕麦奶铁中杯": {
+   "src": "assets/food/冰燕麦奶铁中杯.webp",
+   "from": "燕麦奶铁",
+   "how": "core",
+   "sha1": "1e9e7c0f06d1627374cfac8cc5b4347096af48e9"
+  },
+  "热燕麦奶铁大杯": {
+   "src": "assets/food/冰燕麦奶铁中杯.webp",
+   "from": "燕麦奶铁",
+   "how": "core",
+   "sha1": "1e9e7c0f06d1627374cfac8cc5b4347096af48e9"
+  },
+  "热燕麦奶铁小杯": {
+   "src": "assets/food/冰燕麦奶铁中杯.webp",
+   "from": "燕麦奶铁",
+   "how": "core",
+   "sha1": "1e9e7c0f06d1627374cfac8cc5b4347096af48e9"
+  },
+  "冰美式中杯": {
+   "src": "assets/food/冰美式中杯.webp",
+   "from": "麦咖啡™美式",
+   "how": "core",
+   "sha1": "2147a31c82991280309ad19a1f155b516d770489"
+  },
+  "冰美式大杯": {
+   "src": "assets/food/冰美式中杯.webp",
+   "from": "麦咖啡™美式",
+   "how": "core",
+   "sha1": "2147a31c82991280309ad19a1f155b516d770489"
+  },
+  "冰美式小杯": {
+   "src": "assets/food/冰美式中杯.webp",
+   "from": "麦咖啡™美式",
+   "how": "core",
+   "sha1": "2147a31c82991280309ad19a1f155b516d770489"
+  },
+  "热美式中杯": {
+   "src": "assets/food/冰美式中杯.webp",
+   "from": "麦咖啡™美式",
+   "how": "core",
+   "sha1": "2147a31c82991280309ad19a1f155b516d770489"
+  },
+  "热美式大杯": {
+   "src": "assets/food/冰美式中杯.webp",
+   "from": "麦咖啡™美式",
+   "how": "core",
+   "sha1": "2147a31c82991280309ad19a1f155b516d770489"
+  },
+  "热美式小杯": {
+   "src": "assets/food/冰美式中杯.webp",
+   "from": "麦咖啡™美式",
+   "how": "core",
+   "sha1": "2147a31c82991280309ad19a1f155b516d770489"
+  },
+  "卡布奇诺中杯": {
+   "src": "assets/food/卡布奇诺中杯.webp",
+   "from": "卡布奇诺",
+   "how": "stripped",
+   "sha1": "64b0b9cfc1bfb07713b9ac78ef995feacdf206c2"
+  },
+  "卡布奇诺大杯": {
+   "src": "assets/food/卡布奇诺中杯.webp",
+   "from": "卡布奇诺",
+   "how": "stripped",
+   "sha1": "64b0b9cfc1bfb07713b9ac78ef995feacdf206c2"
+  },
+  "冰浓浓燕麦黑巧中杯": {
+   "src": "assets/food/冰浓浓燕麦黑巧中杯.webp",
+   "from": "浓浓燕麦黑巧（冰/热）",
+   "how": "core",
+   "sha1": "bfe615e3de9c6949d7c2425a2ed4a6d9504e3409"
+  },
+  "冰浓浓燕麦黑巧大杯": {
+   "src": "assets/food/冰浓浓燕麦黑巧中杯.webp",
+   "from": "浓浓燕麦黑巧（冰/热）",
+   "how": "core",
+   "sha1": "bfe615e3de9c6949d7c2425a2ed4a6d9504e3409"
+  },
+  "冰燕麦奶中杯": {
+   "src": "assets/food/冰燕麦奶中杯.webp",
+   "from": "燕麦奶",
+   "how": "core",
+   "sha1": "9570cfcd38d4e325db0ce39305f39479b11abaae"
+  },
+  "冰燕麦奶大杯": {
+   "src": "assets/food/冰燕麦奶中杯.webp",
+   "from": "燕麦奶",
+   "how": "core",
+   "sha1": "9570cfcd38d4e325db0ce39305f39479b11abaae"
+  },
+  "冰燕麦奶小杯": {
+   "src": "assets/food/冰燕麦奶中杯.webp",
+   "from": "燕麦奶",
+   "how": "core",
+   "sha1": "9570cfcd38d4e325db0ce39305f39479b11abaae"
+  },
+  "热燕麦奶中杯": {
+   "src": "assets/food/冰燕麦奶中杯.webp",
+   "from": "燕麦奶",
+   "how": "core",
+   "sha1": "9570cfcd38d4e325db0ce39305f39479b11abaae"
+  },
+  "热燕麦奶大杯": {
+   "src": "assets/food/冰燕麦奶中杯.webp",
+   "from": "燕麦奶",
+   "how": "core",
+   "sha1": "9570cfcd38d4e325db0ce39305f39479b11abaae"
+  },
+  "热燕麦奶小杯": {
+   "src": "assets/food/冰燕麦奶中杯.webp",
+   "from": "燕麦奶",
+   "how": "core",
+   "sha1": "9570cfcd38d4e325db0ce39305f39479b11abaae"
+  },
+  "冰浓浓抹茶牛奶中杯": {
+   "src": "assets/food/冰浓浓抹茶牛奶中杯.webp",
+   "from": "浓浓抹茶牛奶",
+   "how": "core",
+   "sha1": "5bb5976c7e1dda2237ac408603972bb3e27bd38b"
+  },
+  "冰浓浓抹茶牛奶大杯": {
+   "src": "assets/food/冰浓浓抹茶牛奶中杯.webp",
+   "from": "浓浓抹茶牛奶",
+   "how": "core",
+   "sha1": "5bb5976c7e1dda2237ac408603972bb3e27bd38b"
+  },
+  "热浓浓抹茶牛奶中杯": {
+   "src": "assets/food/冰浓浓抹茶牛奶中杯.webp",
+   "from": "浓浓抹茶牛奶",
+   "how": "core",
+   "sha1": "5bb5976c7e1dda2237ac408603972bb3e27bd38b"
+  },
+  "热浓浓抹茶牛奶大杯": {
+   "src": "assets/food/冰浓浓抹茶牛奶中杯.webp",
+   "from": "浓浓抹茶牛奶",
+   "how": "core",
+   "sha1": "5bb5976c7e1dda2237ac408603972bb3e27bd38b"
+  },
+  "冰浓浓黑巧中杯": {
+   "src": "assets/food/冰浓浓黑巧中杯.webp",
+   "from": "浓浓黑巧（冰/热）",
+   "how": "core",
+   "sha1": "59340a000ef6ad731f5fa1a2330c5ea911fae427"
+  },
+  "冰浓浓黑巧大杯": {
+   "src": "assets/food/冰浓浓黑巧中杯.webp",
+   "from": "浓浓黑巧（冰/热）",
+   "how": "core",
+   "sha1": "59340a000ef6ad731f5fa1a2330c5ea911fae427"
+  },
+  "热浓浓黑巧中杯": {
+   "src": "assets/food/冰浓浓黑巧中杯.webp",
+   "from": "浓浓黑巧（冰/热）",
+   "how": "core",
+   "sha1": "59340a000ef6ad731f5fa1a2330c5ea911fae427"
+  },
+  "热浓浓黑巧大杯": {
+   "src": "assets/food/冰浓浓黑巧中杯.webp",
+   "from": "浓浓黑巧（冰/热）",
+   "how": "core",
+   "sha1": "59340a000ef6ad731f5fa1a2330c5ea911fae427"
+  },
+  "川宁伯爵红茶": {
+   "src": "assets/food/锡兰红茶.webp",
+   "from": "锡兰红茶",
+   "how": "alias",
+   "sha1": "e4077f97d459c1402cab5b41aa76880803293642"
+  },
+  "抹茶阿芙佳朵": {
+   "src": "assets/food/抹茶阿芙佳朵.webp",
+   "from": "抹茶阿芙佳朵",
+   "how": "exact",
+   "sha1": "068fa36a0fec0e11be29af2afba67293ef84c130"
+  },
+  "咖啡阿芙佳朵": {
+   "src": "assets/food/咖啡阿芙佳朵.webp",
+   "from": "咖啡阿芙佳朵",
+   "how": "exact",
+   "sha1": "c09cabe44d4a3ce72e6ffa30c711818e2a15c907"
+  },
+  "热浓浓燕麦黑巧中杯": {
+   "src": "assets/food/冰浓浓燕麦黑巧中杯.webp",
+   "from": "浓浓燕麦黑巧（冰/热）",
+   "how": "core",
+   "sha1": "bfe615e3de9c6949d7c2425a2ed4a6d9504e3409"
+  },
+  "热浓浓燕麦黑巧大杯": {
+   "src": "assets/food/冰浓浓燕麦黑巧中杯.webp",
+   "from": "浓浓燕麦黑巧（冰/热）",
+   "how": "core",
+   "sha1": "bfe615e3de9c6949d7c2425a2ed4a6d9504e3409"
   },
   "脆脆薯条": {
-   "src": "assets/food/中薯条.webp",
-   "from": "薯条",
-   "how": "alias"
+   "src": "assets/food/脆脆薯条.webp",
+   "from": "脆脆薯条",
+   "how": "exact",
+   "sha1": "42a9f42baea12f4b9c6abcdca288b267726a657b"
   },
   "酥酥多笋卷": {
    "src": "assets/food/酥酥多笋卷.webp",
    "from": "酥酥多笋卷",
-   "how": "exact"
+   "how": "exact",
+   "sha1": "ed4902e222fb5ed9d5bb710e14f2f6a8dc09840d"
   },
   "薄皮焦香V翅": {
    "src": "assets/food/薄皮焦香v翅.webp",
    "from": "薄皮焦香V翅",
-   "how": "exact"
+   "how": "exact",
+   "sha1": "7bc6475407c08bb43b19ff241b8f7021c9ad8b6b"
   },
   "蜜汁BBQ风味薄皮脆汁鸡-带骨里脊": {
    "src": "assets/food/麦麦脆汁鸡琵琶腿.webp",
    "from": "麦麦脆汁鸡1块",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "2d85d36e8743a50a708ca4f7be5ce94b602aef92"
   },
   "蜜汁BBQ风味薄皮脆汁鸡-琵琶腿": {
    "src": "assets/food/麦麦脆汁鸡琵琶腿.webp",
    "from": "麦麦脆汁鸡1块",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "2d85d36e8743a50a708ca4f7be5ce94b602aef92"
+  },
+  "“苹板”支撑Pro": {
+   "src": "assets/food/苹板支撑pro.webp",
+   "from": "苹板支撑便民套餐",
+   "how": "alias",
+   "sha1": "30fd79f21cb5a0ebce0e1c7ff0c7e3baa31ce074"
   },
   "绝代双翅": {
    "src": "assets/food/麦辣鸡翅2块.webp",
    "from": "麦辣鸡翅",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "fc6be726e317f69c17487c837eb130241527e80d"
+  },
+  "牛气满满": {
+   "src": "assets/food/牛气满满.webp",
+   "from": "牛气满满套餐",
+   "how": "alias",
+   "sha1": "d8c847b458eef8adae7f5f1e8d3aa2eaff849c82"
   },
   "迷你朱古力新地": {
    "src": "assets/food/朱古力新地.webp",
    "from": "新地",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "1ba00b23c6fa245264e72c81a3c248ff5cd06502"
   },
   "迷你草莓新地": {
    "src": "assets/food/朱古力新地.webp",
    "from": "新地",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "1ba00b23c6fa245264e72c81a3c248ff5cd06502"
   },
   "中杯怡泉+C": {
    "src": "assets/food/中杯怡泉c.webp",
    "from": "怡泉+C",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "eb71d9e03c1a8414d40eae6d5158595bd045fb93"
   },
   "大杯怡泉+C": {
    "src": "assets/food/中杯怡泉c.webp",
    "from": "怡泉+C",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "eb71d9e03c1a8414d40eae6d5158595bd045fb93"
   },
   "蒜了吧黄油风味薄皮脆汁鸡-琵琶腿": {
    "src": "assets/food/麦麦脆汁鸡琵琶腿.webp",
    "from": "麦麦脆汁鸡1块",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "2d85d36e8743a50a708ca4f7be5ce94b602aef92"
   },
   "蒜了吧黄油风味薄皮脆汁鸡-带骨里脊": {
    "src": "assets/food/麦麦脆汁鸡琵琶腿.webp",
    "from": "麦麦脆汁鸡1块",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "2d85d36e8743a50a708ca4f7be5ce94b602aef92"
   },
   "柠萌风味薄皮焦香V翅": {
    "src": "assets/food/薄皮焦香v翅.webp",
    "from": "薄皮焦香V翅",
-   "how": "alias"
+   "how": "alias",
+   "sha1": "7bc6475407c08bb43b19ff241b8f7021c9ad8b6b"
   }
  }
 }

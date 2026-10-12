@@ -40,7 +40,7 @@
 | 工具 | 角色 | 入参 | 项目中的用途 |
 |---|---|---|---|
 | `list-nutrition-foods` | **核心** | 无 | 取全部餐品的营养数据（热量/蛋白/脂肪/碳水/钠/钙），驱动健康分、每日额度与搭配顾问 |
-| `query-meals` | **核心** | `storeCode`,`orderType`,`beType` | 取官方菜单数据，用其中的 `image` 字段落地**官方白底商品图**（64 条），让餐品一眼可辨 |
+| `query-meals` | **核心** | `storeCode`,`orderType`,`beType` | 取官方菜单数据，用其中的 `image` 字段落地**官方白底商品图**（126 条），让餐品一眼可辨 |
 | `order-list` | 附属 | 可选 `lastId`,`size` | 「历史订单」——把真实消费贴回页面生成饮食报告 |
 | `auto-bind-coupons` | 附属 | 无 | 「一键领券」 |
 | `campaign-calendar` | 附属 | 无 | 「活动日历」 |
@@ -98,7 +98,7 @@
         │
         ▼
 ③ 下载 → 内存中转 96×96 WebP（按 sha1 去重，同图只存一份）→ assets/food/
-        │  实测 64/158 条对得上官方图，去重后 36 个文件 / 76 KB
+        │  实测 126/158 条对得上官方图，去重后 55 个文件 / 121 KB
         ▼
 ④ 生成 data/food-photos.json → tools/build.py 内联索引
         │
@@ -222,7 +222,7 @@ python tools/fetch-rank-index.py
 python tools/build.py
 
 # 5. 全量校验（渲染 / 图标 / 规格差异 / 投喂动画 / 养成持久化 / 实时榜单 /
-#    手机 + 桌面双端 / 截图，共 133 项断言）
+#    手机 + 桌面双端 / 截图，共 135 项断言）
 node tools/browser-check.js
 
 # 校验线上部署（Edge 不读 HTTP_PROXY，需显式指定代理）

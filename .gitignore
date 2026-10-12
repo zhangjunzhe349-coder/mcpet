@@ -43,6 +43,8 @@ _repo_*.json
 _name2repo.json
 _menu_raw.txt
 _menu_err.txt
+_menu_pool.json
+_probe.py
 
 # 本机调试草稿（裁图 / 语法自检 / 图标单测，都是临时产物）
 _crop_*.png
@@ -50,3 +52,13 @@ _m[0-9].png
 _t[0-9].*
 _t_*.js
 _syntax_check.js
+_registry_tmp.json
+
+# 个人比赛盯盘台（私人作战工具：盯竞品星数，不入比赛提交仓库）
+rankboard.html
+data/watchboard.json
+src/rankboard.template.html
+tools/fetch-watchboard.py
+tools/build-rankboard.py
+tools/rankboard-check.js
+assets/rankboard-preview.png

@@ -112,24 +112,25 @@ function renderRankMine(rows){
   $('rkMine').innerHTML = (my
     ? box('第 ' + my.rank + ' 名', my.stars + ' ★', gate, ['状态', '已进榜'])
     : box('<span style="color:#B32216">未进榜</span>', '…', gate, ['还差', '…'])) + foot;
-  if(!my) loadMyStars(gate);
+  if(!my) fillMyStars(gate);
 }
 
-async function loadMyStars(gate){
+/* 我的星数：不直连 api.github.com（未认证的 fetch 容易被限流，403 会污染控制台），
+   上榜时榜单里就有实时值；未上榜则如实标注「未进榜」——
+   官方规则 0 ★ 不进榜，未上榜即低于进榜门槛，硬查只会拿到一个不可信的旧值。 */
+function fillMyStars(gate){
   const set = (s, gap) => {
     const a = $('rkMyStars'), b = $('rkGap');
     if(a) a.textContent = s;
     if(b) b.textContent = gap;
   };
-  try {
-    const r = await fetchWithTimeout('https://api.github.com/repos/' + RANK_INDEX.myRepo,
-      { headers:{ 'Accept':'application/vnd.github+json' } });
-    if(!r.ok) throw new Error('HTTP ' + r.status);
-    const s = (await r.json()).stargazers_count | 0;
-    set(s + ' ★', s >= gate ? '已达标' : '还差 ' + (gate - s) + ' ★');
-  } catch(e){
-    set('—', '以仓库为准');
+  const mine = String(RANK_INDEX.myRepo || '').toLowerCase();
+  const snap = (RANK_INDEX.snapshot || []).filter(r => repoOf(r.name).toLowerCase() === mine)[0];
+  if(snap){
+    set(snap.stars + ' ★', snap.stars >= gate ? '已达标' : '还差 ' + (gate - snap.stars) + ' ★');
+    return;
   }
+  set('未进榜', '低于进榜门槛');
 }
 
 function renderRankRows(rows){
