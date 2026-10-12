@@ -203,8 +203,11 @@ async function waitReady(cdp, timeoutLoops = 60) {
     check('无资源加载失败', realLogErr.length === 0, realLogErr.slice(0, 3).join(' | '));
 
     console.log('\n【3】渲染产物');
-    await sleep(400);   // 等首屏官方白底图解码完成
-    const render = await cdp.ev(`(() => {
+    const render = await cdp.ev(`(async () => {
+      // 等首屏官方白底图解码完成（loading=lazy + decoding=async，网络慢时最多等 3s）
+      const _imgs = [...document.querySelectorAll('#grid .item .ic .fp')];
+      const _t0 = Date.now();
+      while(_imgs.some(i => !i.complete) && Date.now() - _t0 < 3000) await new Promise(r => setTimeout(r, 100));
       const c = document.getElementById('pet');
       const ctx = c.getContext('2d');
       const d = ctx.getImageData(0,0,c.width,c.height).data;
@@ -227,7 +230,7 @@ async function waitReady(cdp, timeoutLoops = 60) {
         photoCover: Object.keys(PHOTOS).length,
         photoTotal: PHOTO_META.total,
         cellBgs: [...document.querySelectorAll('#grid .item .ic')].map(e => getComputedStyle(e).backgroundColor),
-        gridImgs: [...document.querySelectorAll('#grid .item .ic .fp')].map(i => i.complete && i.naturalWidth > 0),
+        gridImgs: [...document.querySelectorAll('#grid .item .ic .fp')].map(i => ({ ok: i.complete && i.naturalWidth > 0, src: i.getAttribute('src') })),
         title: document.title,
         brand: (document.querySelector('.brand div') || {}).textContent || '',
         mcpLeft: document.querySelectorAll('#mcpCards, .mcpcard').length,
@@ -273,8 +276,10 @@ async function waitReady(cdp, timeoutLoops = 60) {
       render && render.cellBgs.length > 0 && render.cellBgs.every(c => c === 'rgb(255, 255, 255)'),
       'n=' + (render && render.cellBgs.length) + ' 非白=' + (render ? render.cellBgs.filter(c => c !== 'rgb(255, 255, 255)').length : '?'));
     check('首屏官方白底图真实加载成功（未回落到手绘）',
-      render && render.gridImgs.length > 0 && render.gridImgs.every(Boolean),
-      `已加载 ${render ? render.gridImgs.filter(Boolean).length : '?'}/${render ? render.gridImgs.length : '?'}`);
+      render && render.gridImgs.length > 0 && render.gridImgs.every(x => x.ok),
+      render ? `已加载 ${render.gridImgs.filter(x => x.ok).length}/${render.gridImgs.length}`
+        + (render.gridImgs.some(x => !x.ok) ? ' 未完成: ' + render.gridImgs.filter(x => !x.ok).map(x => x.src).join(',') : '')
+        : '?');
     check('无官方图时自动落到手绘图标（互斥渲染）', render && (render.gridNoPhoto + render.gridPhotos === render.grid), `photo=${render && render.gridPhotos} 手绘=${render && render.gridNoPhoto}`);
     check('同品类不同规格画得不一样（小/大薯条 · 4/5块鸡块 · 香芋/菠萝派 · 小/大杯）',
       render && render.sizeDiff.every(Boolean), 'diff=' + JSON.stringify(render && render.sizeDiff));
